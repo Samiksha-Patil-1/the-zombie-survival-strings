@@ -173,7 +173,7 @@ def build_pdf(filename="ZOMBIE_STRING_OF_SURVIVAL_MASTER_PROMPT.pdf"):
     # Core narrative callout
     narrative_p = Paragraph(
         "<b>CORE NARRATIVE PREMISE:</b><br/>"
-        "<i>\"You are Alexei, trapped in a zombie-infested District 4, and you have 7 days to explore the city, "
+        "<i>\"You are Alexia, trapped in a zombie-infested District 4, and you have 7 days to explore the city, "
         "collect resources, rescue survivors, manage your increasingly detectable base, adapt to enemies that "
         "respond to your playstyle, uncover the infection mystery, and finally escape from the harbor.\"</i>",
         body_style
@@ -200,12 +200,12 @@ def build_pdf(filename="ZOMBIE_STRING_OF_SURVIVAL_MASTER_PROMPT.pdf"):
 
     # Prompt Part 1
     story.append(create_prompt_box(
-        "PROMPT PART 1: CORE ARCHITECTURE & PROTAGONIST RIG (ALEXEI)",
+        "PROMPT PART 1: CORE ARCHITECTURE & PROTAGONIST RIG (ALEXIA)",
         [
             "Build a complete, production-ready AAA 3D/4D/5D Survival Horror Web Game titled 'ZOMBIE: STRING OF SURVIVAL'.",
-            "PREMISE: You are Alexei, trapped in a zombie-infested District 4, and you have 7 days to explore the city, collect resources, rescue survivors, manage your increasingly detectable base, adapt to enemies that respond to your playstyle, uncover the infection mystery, and finally escape from the harbor.",
+            "PREMISE: You are Alexia, trapped in a zombie-infested District 4, and you have 7 days to explore the city, collect resources, rescue survivors, manage your increasingly detectable base, adapt to enemies that respond to your playstyle, uncover the infection mystery, and finally escape from the harbor.",
             "TECH STACK: Vanilla HTML5, CSS3, JavaScript with Three.js (r128) bundled locally in 'js/three.min.js'. All 3D characters, survivors, and zombies MUST be constructed using procedural Three.js composite meshes and materials so the game requires zero external 3D model downloads (no .gltf/.fbx), loads instantly offline/Vercel, and avoids CORS issues.",
-            "ALEXEI RIG: Build playerGroup at (-25, 0, -10). Torso: tactical jacket (BoxGeometry 0.72, 0.82, 0.44 color 0x2b333e), Kevlar plate carrier (0.62, 0.64, 0.12 color 0x18181b), 3 chest mag pouches (0.13, 0.18, 0.08), VHF radio with 0.35m whip antenna, combat knife in chest sheath, duty belt with brass buckle, right hip holster, and olive shemagh neck scarf (CylinderGeometry 0.16, 0.22, 0.20). Backpack: 60L rucksack (0.54, 0.72, 0.30) with strapped horizontal bedroll (0.10, 0.10, 0.64) across top with dual buckles, side pouches, water canteen, strapped hatchet (0.52m handle), and radio antenna. Head: sculpted face (SphereGeometry 0.23, skin tone 0xdca97a) with 3D eyes (white sclera, dark pupils), brow ridges, defined nose, 5 o'clock stubble shadow, tactical dark beanie cap with folded rim, hair strands, and comms earpiece with boom mic. Limbs: articulated arms with rolled sleeves, digital watch with cyan LED screen (0x00f5d4), fingerless combat gloves, TPS weapon rig. Cargo pants with thigh pockets, composite hard knee pads (0.22, 0.18, 0.08), and lugged combat boots (0.24, 0.22, 0.36) with sole treads. Camera: auto-hide head in FPS mode (V) to avoid camera clipping; reveal complete character in TPS (V) and Drone (T) views with weapon pitch aiming."
+            "ALEXIA RIG: Build playerGroup at (-25, 0, -10). Protagonist is Alexia, an athletic female survivor. Torso: ivory white sleeveless blouse/tunic (BoxGeometry 0.52, 0.52, 0.32, color 0xfcfbfa) with skin décolletage opening (0.20, 0.22, 0.04 color 0xf5c2a3) and draped V-neck lapel folds angled 0.25 rad. Cinched natural waist with white fabric sash (0.48, 0.11, 0.30), circular silver ring buckle (TorusGeometry 0.045, 0.012), cascading tie ends (0.07, 0.22, 0.03), and draped peplum tunic hem (CylinderGeometry 0.24, 0.29, 0.24) cascading over hips. Cross-body slim utility sling pack (0.32, 0.26, 0.12 color 0x3f3f46) with diagonal chest strap, plus compact VHF emergency radio with 0.22m whip antenna on side belt. Head & Hair: delicate feminine head (SphereGeometry 0.20 scaled 0.88, 1.05, 0.94 color 0xf5c2a3), soft chin contour, almond brown eyes (iris 0x4a2c11) with white sclera and dark upper eyelashes, arched brows, small nose, and soft rosy lips (0xc87070). SIGNATURE HAIR: Long flowing chestnut auburn wavy hair (0x5c3418) parted cleanly in the center, with crown dome, cascading wavy locks falling over BOTH shoulders to mid-chest (dual cylinder curls 0.36m & 0.32m each side), and long cascading locks down the back (0.40m & 0.42m). Limbs: bare feminine arms (upper arm 0.062, forearm 0.052), silver wrist bracelet tracker, TPS weapon rig. Fitted dark indigo denim skinny jeans (0x182435, thighs 0.10, calves 0.08) with articulated knees. Cream espadrille wedge flats (0xf3ede2) with woven jute sole trim (0xd2b58d) and delicate ankle straps with buckles. Camera: auto-hide head in FPS mode (V) to avoid camera clipping; reveal complete character in TPS (V) and Drone (T) views with weapon pitch aiming."
         ],
         prompt_box_style, prompt_head_style
     ))
@@ -219,7 +219,7 @@ def build_pdf(filename="ZOMBIE_STRING_OF_SURVIVAL_MASTER_PROMPT.pdf"):
             "1. Dr. Evelyn Reed (Doctor, 50, -48): White lab coat (0.64, 0.92, 0.40) over turquoise scrubs (0x0d9488), stethoscope torus tube with silver chestpiece disc, Red Cross armband (0xef4444), wireframe glasses, ponytail hair bun, light blue surgical gloves, holding illuminated cyan antiviral sample vial.",
             "2. Marcus Vance (Engineer, -34, -42): Safety orange boiler suit (0xea580c) with grease smudges, dual brass welding goggles on forehead, thick dark brown beard, heavy leather toolbelt with 3D pipe wrench (0.42m cylinder + box head) and hammer, steel-toed work boots.",
             "3. Sgt. Darius Cole (Soldier, -22, -22): Digital woodland camo BDU (0x3f4f2e) with tactical assault vest (0x1f2937), Kevlar helmet with NVG mount and chinstrap, facial combat scar over eye, slung assault rifle (0.10, 0.16, 0.85), military jump boots.",
-            "Survivors feature idle breathing, head tracking that turns to look at Alexei within 8m, and overhead rotating role beacons.",
+            "Survivors feature idle breathing, head tracking that turns to look at Alexia within 8m, and overhead rotating role beacons.",
             "HORROR ZOMBIES (Visceral Undead Anatomy & 4 Archetypes):",
             "Necrotic Flesh & Posture: Sickly olive-green skin (0x44533c, roughness 0.92). Torso hunched forward 0.38 rad (25 deg) with 5 protruding spinal vertebrae bone spheres (0.055) along back. Gaping chest wound (0.36, 0.45, 0.08, color 0x5e0b0b) with 3 curved TorusGeometry rib bones protruding out with dripping blood.",
             "Gaunt Skull & Snarling Jaw: Emaciated skull with hollow black sockets, cranial trauma with exposed white bone, and glowing infected eyes. Separate lower jaw hinged open 0.35 rad in a snarl with dark throat interior and dual rows of 7 sharp yellow bloody cone teeth (0.018, 0.06).",
@@ -264,11 +264,11 @@ def build_pdf(filename="ZOMBIE_STRING_OF_SURVIVAL_MASTER_PROMPT.pdf"):
     story.append(Paragraph("SECTION 2: COMPONENT SPECIFICATIONS & MATHEMATICAL BLUEPRINTS", h1_style))
     story.append(Paragraph("This reference section documents exact coordinate offsets, geometry dimensions, and algorithms:", body_style))
 
-    story.append(Paragraph("2.1 Alexei Protagonist Model Blueprint", h2_style))
-    story.append(Paragraph("• <b>Head Group:</b> SphereGeometry(0.23, 16, 14) scaled (0.92, 1.08, 1.0) color 0xdca97a. Dual eye spheres (0.038) with pupils (0.018) at z=0.20. Brow ridges angled 0.12 rad. Nose wedge at z=0.23. Cylinder stubble shadow at y=-0.14. Tactical beanie cap SphereGeometry(0.245) with TorusGeometry brim (0.235, 0.045). Comms earpiece with boom mic cylinder angled PI/3.", bullet_style))
-    story.append(Paragraph("• <b>Torso Group:</b> Jacket BoxGeometry(0.72, 0.82, 0.44) color 0x2b333e. Plate carrier BoxGeometry(0.62, 0.64, 0.12) color 0x18181b. 3 mag pouches (0.13, 0.18, 0.08) at z=0.27. VHF radio with 0.35m antenna. Combat knife in chest sheath. Duty belt with brass buckle and hip holster. Olive shemagh scarf CylinderGeometry(0.16, 0.22, 0.20).", bullet_style))
-    story.append(Paragraph("• <b>Backpack Group:</b> 60L rucksack BoxGeometry(0.54, 0.72, 0.30) color 0x374151. Bedroll CylinderGeometry(0.10, 0.10, 0.64) strapped across top with dual TorusGeometry buckles. Dual side pouches, canteen, survival hatchet (0.52m handle), and whip antenna.", bullet_style))
-    story.append(Paragraph("• <b>Articulated Limbs:</b> Left arm has upper sleeve, bare forearm, digital watch with cyan LED face (0x00f5d4), and fingerless glove. Right arm holds TPS weapon rig. Left and right legs have upper thighs with outer pockets, composite hard knee pads BoxGeometry(0.22, 0.18, 0.08), shins, and combat boots with sole treads BoxGeometry(0.25, 0.06, 0.40).", bullet_style))
+    story.append(Paragraph("2.1 Alexia Protagonist Model Blueprint", h2_style))
+    story.append(Paragraph("• <b>Head & Facial Structure:</b> SphereGeometry(0.20, 18, 16) scaled (0.88, 1.05, 0.94) color 0xf5c2a3 (warm feminine skin). Feminine chin sphere (0.08) at z=0.13. Dual almond eyes with white sclera, warm brown irises (0x4a2c11), dark pupils, upper eyelash bars (0x1c1917), and gracefully arched brows (0x452311). Delicate nose cone and soft rosy lips (0xc87070) with curved upper and lower contours.", bullet_style))
+    story.append(Paragraph("• <b>Long Flowing Chestnut Auburn Hair:</b> Signature hair color 0x5c3418. Crown dome SphereGeometry(0.225) with center scalp part. Cascading locks down back (dual cylinders 0.40m & 0.42m to mid-back). Cascading wavy locks falling over BOTH left and right shoulders to mid-chest (dual angled cylinders 0.36m & 0.32m each side).", bullet_style))
+    story.append(Paragraph("• <b>Torso & Flowing Blouse:</b> Ivory white sleeveless tunic/blouse (BoxGeometry 0.52, 0.52, 0.32 color 0xfcfbfa) with skin décolletage opening (0.20, 0.22, 0.04) and draped V-neck lapel folds angled 0.25 rad. Cinched natural waist with fabric sash (0.48, 0.11, 0.30), circular silver ring buckle (TorusGeometry 0.045, 0.012), cascading tie ends (0.07, 0.22, 0.03), and draped peplum hem (CylinderGeometry 0.24, 0.29, 0.24) cascading over hips.", bullet_style))
+    story.append(Paragraph("• <b>Articulated Limbs & Denim:</b> Bare feminine arms (upper arm 0.062, forearm 0.052), silver wrist bracelet / tracker, TPS weapon rig. Fitted dark indigo denim skinny jeans (color 0x182435, thighs 0.10, calves 0.08) with articulated knees. Cream espadrille wedge flats (0xf3ede2) with woven jute sole trim (0xd2b58d) and delicate ankle straps.", bullet_style))
 
     story.append(Paragraph("2.2 Horror Zombie Anatomy Blueprint", h2_style))
     story.append(Paragraph("• <b>Necrotic Anatomy:</b> Sickly olive-green skin 0x44533c (roughness 0.92). Torso hunched forward 0.38 rad (25 deg) with 5 protruding spinal vertebrae spheres (0.055) along back. Gaping chest wound (0.36, 0.45, 0.08) color 0x5e0b0b with 3 curved TorusGeometry(0.14, 0.022, 6, 8, 0.65*PI) rib bones protruding outward.", bullet_style))
@@ -289,7 +289,7 @@ def build_pdf(filename="ZOMBIE_STRING_OF_SURVIVAL_MASTER_PROMPT.pdf"):
     matrix_data = [
         ["System Component", "Runtime Status", "Playable In-Game Functionality"],
         ["3D Survival Horror Engine", "100% Implemented", "Three.js WebGL city district, day/night cycle, burning embers, lighting"],
-        ["Alexei Player 3D Rig", "100% Implemented", "Detailed head, cap, vest, rucksack, articulated legs, TPS weapons"],
+        ["Alexia Player 3D Rig", "100% Implemented", "White belted tunic, ring buckle, long chestnut hair, skinny jeans, espadrilles, TPS weapons"],
         ["NPC Survivors (3 Roles)", "100% Implemented", "Dr. Reed, Marcus, Sgt. Cole models with idle breathing, head tracking, quests"],
         ["Horror Zombies (4 Types)", "100% Implemented", "Rotting flesh, exposed ribs, snarling teeth, bare foot, claw attacks, blood decals"],
         ["FPS / TPS / Drone Camera", "100% Implemented", "1st person, 3rd person with weapon pitch aim, 80m reconnaissance drone"],
@@ -324,7 +324,7 @@ def build_pdf(filename="ZOMBIE_STRING_OF_SURVIVAL_MASTER_PROMPT.pdf"):
     # Verification checklist
     story.append(Paragraph("SECTION 4: 10-POINT AI GENERATION VERIFICATION CHECKLIST", h1_style))
     checklist_items = [
-        "1. Does the 3D player character render Alexei with tactical vest, backpack, beanie cap, radio, watch, and combat boots?",
+        "1. Does the 3D player character render Alexia with white belted tunic, silver ring buckle, long flowing chestnut hair, dark indigo skinny jeans, and cream espadrille flats?",
         "2. Does pressing 'V' cleanly toggle between First-Person and Third-Person view without camera head clipping?",
         "3. Does pressing 'T' toggle the free-flying tactical reconnaissance drone at 80m altitude?",
         "4. Do the zombies exhibit rotting green/purple flesh, exposed ribcage with 3D rib bones, and snarling jaws with fangs?",
