@@ -83,6 +83,9 @@ class SurvivalGame3D {
     this.ambientTrees = [];
     this._barkTexture = null;
     this._foliageTexture = null;
+    this._brickTexture = null;
+    this._stoneTexture = null;
+    this._roofGravelTexture = null;
 
     // Base Heat Manager
     this.baseHeat = {
@@ -282,6 +285,9 @@ class SurvivalGame3D {
 
     // Atmospheric Deciduous Trees (Bifurcated Trunk & Sprawling Umbrella Canopy)
     this.buildCityTrees();
+
+    // Street-Level Brick Townhouses (Authentic 3-Story Commercial & Residential Blocks)
+    this.buildCityTownhouses();
   }
 
   createRoad(x, z, w, l, isHorizontal) {
@@ -298,27 +304,137 @@ class SurvivalGame3D {
   }
 
   createSkyscraper(x, z, w, h, d, color, labelText, neonCol) {
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color, roughness: 0.7, metalness: 0.3 }));
-    mesh.position.set(x, h / 2, z);
-    mesh.castShadow = true; mesh.receiveShadow = true;
-    this.scene.add(mesh);
+    const towerGroup = new THREE.Group();
+    towerGroup.position.set(x, 0, z);
 
-    // Window Grid
-    const win = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.9, h * 0.8), new THREE.MeshBasicMaterial({ color: 0xfff0c2, wireframe: true, transparent: true, opacity: 0.15 }));
-    win.position.set(x, h / 2, z + d / 2 + 0.1);
-    this.scene.add(win);
+    const brickTex = this.getBrickTexture();
+    const roofTex = this.getRoofGravelTexture();
 
-    // Neon Sign
-    const sign = new THREE.Mesh(new THREE.BoxGeometry(w * 0.7, 2.5, 0.5), new THREE.MeshBasicMaterial({ color: neonCol }));
-    sign.position.set(x, h + 1.5, z + d / 2 + 0.3);
-    this.scene.add(sign);
+    const plinthMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.95 });
+    const trimMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.8 });
+    const bodyMat = new THREE.MeshStandardMaterial({
+      color: color || 0xb84c2a,
+      roughness: 0.75,
+      map: brickTex || undefined
+    });
+    const roofMat = new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      roughness: 0.95,
+      map: roofTex || undefined
+    });
+
+    // 1. Concrete Base Plinth
+    const plinthH = 1.5;
+    const plinth = new THREE.Mesh(new THREE.BoxGeometry(w + 0.6, plinthH, d + 0.6), plinthMat);
+    plinth.position.y = plinthH / 2;
+    plinth.receiveShadow = true;
+    towerGroup.add(plinth);
+
+    // 2. Main Tower Body
+    const bodyH = h - plinthH;
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, bodyH, d), bodyMat);
+    mesh.position.y = plinthH + bodyH / 2;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    towerGroup.add(mesh);
+
+    // 3. Intermediate Stone Stringcourse Cornices
+    const tierCount = Math.floor(h / 14);
+    for (let t = 1; t <= tierCount; t++) {
+      const cornice = new THREE.Mesh(new THREE.BoxGeometry(w + 0.4, 0.45, d + 0.4), trimMat);
+      cornice.position.y = plinthH + t * 14;
+      cornice.castShadow = true;
+      towerGroup.add(cornice);
+    }
+
+    // 4. Window Grid (Glowing Architectural Windows)
+    const win = new THREE.Mesh(
+      new THREE.PlaneGeometry(w * 0.88, bodyH * 0.82),
+      new THREE.MeshBasicMaterial({ color: 0xfff0c2, wireframe: true, transparent: true, opacity: 0.18 })
+    );
+    win.position.set(0, plinthH + bodyH / 2, d / 2 + 0.08);
+    towerGroup.add(win);
+
+    const winBack = new THREE.Mesh(
+      new THREE.PlaneGeometry(w * 0.88, bodyH * 0.82),
+      new THREE.MeshBasicMaterial({ color: 0xfff0c2, wireframe: true, transparent: true, opacity: 0.12 })
+    );
+    winBack.rotation.y = Math.PI;
+    winBack.position.set(0, plinthH + bodyH / 2, -d / 2 - 0.08);
+    towerGroup.add(winBack);
+
+    // 5. Roof Structure (Recessed deck with raised stone parapet)
+    const paraH = 1.4;
+    const paraN = new THREE.Mesh(new THREE.BoxGeometry(w + 0.5, paraH, 0.7), trimMat);
+    paraN.position.set(0, h + paraH / 2, -d / 2);
+    towerGroup.add(paraN);
+    const paraS = new THREE.Mesh(new THREE.BoxGeometry(w + 0.5, paraH, 0.7), trimMat);
+    paraS.position.set(0, h + paraH / 2, d / 2);
+    towerGroup.add(paraS);
+    const paraE = new THREE.Mesh(new THREE.BoxGeometry(0.7, paraH, d), trimMat);
+    paraE.position.set(w / 2, h + paraH / 2, 0);
+    towerGroup.add(paraE);
+    const paraW = new THREE.Mesh(new THREE.BoxGeometry(0.7, paraH, d), trimMat);
+    paraW.position.set(-w / 2, h + paraH / 2, 0);
+    towerGroup.add(paraW);
+
+    const roofDeck = new THREE.Mesh(new THREE.BoxGeometry(w - 0.6, 0.3, d - 0.6), roofMat);
+    roofDeck.position.set(0, h + 0.15, 0);
+    towerGroup.add(roofDeck);
+
+    // Rooftop HVAC & Elevator Penthouse
+    const penthouse = new THREE.Mesh(new THREE.BoxGeometry(w * 0.35, 3.2, d * 0.35), bodyMat);
+    penthouse.position.set(-w * 0.2, h + 1.6, -d * 0.15);
+    towerGroup.add(penthouse);
+
+    const hvac = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.8, 2.4), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.7 }));
+    hvac.position.set(w * 0.22, h + 0.9, d * 0.15);
+    towerGroup.add(hvac);
+
+    // 6. Neon Landmark Sign
+    const sign = new THREE.Mesh(new THREE.BoxGeometry(w * 0.7, 2.8, 0.5), new THREE.MeshBasicMaterial({ color: neonCol }));
+    sign.position.set(0, h + 2.0, d / 2 + 0.35);
+    towerGroup.add(sign);
+
+    this.scene.add(towerGroup);
   }
 
   createGenericSkyscraper(x, z, w, h, d) {
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color: 0x18202c, roughness: 0.8, metalness: 0.2 }));
-    mesh.position.set(x, h / 2, z);
-    mesh.castShadow = true; mesh.receiveShadow = true;
-    this.scene.add(mesh);
+    const towerGroup = new THREE.Group();
+    towerGroup.position.set(x, 0, z);
+
+    const brickTex = this.getBrickTexture();
+    const plinthMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.95 });
+    const trimMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.8 });
+    const bodyMat = new THREE.MeshStandardMaterial({
+      color: 0x9a3412,
+      roughness: 0.8,
+      map: brickTex || undefined
+    });
+
+    const plinthH = 1.2;
+    const plinth = new THREE.Mesh(new THREE.BoxGeometry(w + 0.4, plinthH, d + 0.4), plinthMat);
+    plinth.position.y = plinthH / 2;
+    towerGroup.add(plinth);
+
+    const bodyH = h - plinthH;
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, bodyH, d), bodyMat);
+    mesh.position.y = plinthH + bodyH / 2;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    towerGroup.add(mesh);
+
+    const paraH = 1.2;
+    const para = new THREE.Mesh(new THREE.BoxGeometry(w + 0.4, paraH, d + 0.4), trimMat);
+    para.position.set(0, h + paraH / 2, 0);
+    towerGroup.add(para);
+
+    // Rooftop equipment
+    const hvac = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.6, 2.0), new THREE.MeshStandardMaterial({ color: 0x64748b }));
+    hvac.position.set(0, h + 0.8, 0);
+    towerGroup.add(hvac);
+
+    this.scene.add(towerGroup);
   }
 
   createElevatedHighway(x, z, length) {
@@ -382,6 +498,9 @@ class SurvivalGame3D {
       type: 'generator', x: x - 8, z: z - 8, radius: 4.5,
       prompt: 'Toggle Modified Diesel Generator (Press E)'
     });
+
+    // Primary Brick Safehouse Headquarters Command Building (Matching 3-Story Reference)
+    this.createBrickTownhouse(x + 4, z - 4, 22, 16, 22, 0, { isSafehouseHQ: true });
   }
 
   createVehicle(x, z, rot, color) {
@@ -757,6 +876,370 @@ class SurvivalGame3D {
 
     treePlacements.forEach(t => {
       this.createTree(t[0], t[1], t[2], t[3]);
+    });
+  }
+
+  /* ========================================================================
+     3C. ARCHITECTURAL BRICK BUILDINGS & TOWNHOUSES (Matching Reference Design)
+     ======================================================================== */
+  getBrickTexture() {
+    if (this._brickTexture) return this._brickTexture;
+    if (typeof document === 'undefined') return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    // Mortar background
+    ctx.fillStyle = '#cfc9bf';
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Running bond bricks (rows of staggered rectangles)
+    const brickH = 20;
+    const brickW = 48;
+    const mortar = 3;
+    const brickColors = ['#b84c2a', '#a53e20', '#c85a36', '#8e3218', '#9e4226', '#b04726', '#c1532f'];
+
+    let row = 0;
+    for (let y = 0; y < 512; y += brickH + mortar) {
+      const offset = (row % 2 === 0) ? 0 : -brickW / 2;
+      for (let x = offset; x < 512 + brickW; x += brickW + mortar) {
+        ctx.fillStyle = brickColors[Math.floor(Math.random() * brickColors.length)];
+        ctx.fillRect(x, y, brickW, brickH);
+
+        // Subtle brick gradient / weathering
+        ctx.fillStyle = 'rgba(0,0,0,0.08)';
+        ctx.fillRect(x, y + brickH - 4, brickW, 4);
+        ctx.fillStyle = 'rgba(255,255,255,0.06)';
+        ctx.fillRect(x, y, brickW, 3);
+      }
+      row++;
+    }
+
+    // Weathering grunge / grime specks
+    ctx.fillStyle = 'rgba(30, 20, 15, 0.15)';
+    for (let i = 0; i < 200; i++) {
+      const gx = Math.random() * 512;
+      const gy = Math.random() * 512;
+      const gw = 2 + Math.random() * 6;
+      ctx.fillRect(gx, gy, gw, gw);
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(4, 4);
+    this._brickTexture = tex;
+    return tex;
+  }
+
+  getStorefrontStoneTexture() {
+    if (this._stoneTexture) return this._stoneTexture;
+    if (typeof document === 'undefined') return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    // Mortar joint
+    ctx.fillStyle = '#474747';
+    ctx.fillRect(0, 0, 256, 256);
+
+    // Cobblestone / stacked ashlar stone blocks in variegated greys/blues/tans
+    const stoneColors = ['#787672', '#8c8a84', '#64686e', '#888176', '#5c5e62', '#6e7075'];
+    const rowH = 18;
+    let r = 0;
+    for (let y = 0; y < 256; y += rowH + 2) {
+      let x = (r % 2 === 0) ? 0 : -14;
+      while (x < 256 + 30) {
+        const blkW = 16 + Math.floor(Math.random() * 22);
+        ctx.fillStyle = stoneColors[Math.floor(Math.random() * stoneColors.length)];
+        ctx.fillRect(x, y, blkW, rowH);
+
+        // Stone bevel highlight & shadow
+        ctx.fillStyle = 'rgba(255,255,255,0.12)';
+        ctx.fillRect(x, y, blkW, 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        ctx.fillRect(x, y + rowH - 2, blkW, 2);
+
+        x += blkW + 2;
+      }
+      r++;
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(2, 2);
+    this._stoneTexture = tex;
+    return tex;
+  }
+
+  getRoofGravelTexture() {
+    if (this._roofGravelTexture) return this._roofGravelTexture;
+    if (typeof document === 'undefined') return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    ctx.fillStyle = '#3a3a40';
+    ctx.fillRect(0, 0, 256, 256);
+
+    // Weathered crack lines
+    ctx.strokeStyle = '#222226';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 15; i++) {
+      let cx = Math.random() * 256;
+      let cy = Math.random() * 256;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      for (let s = 0; s < 6; s++) {
+        cx += (Math.random() - 0.5) * 35;
+        cy += (Math.random() - 0.5) * 35;
+        ctx.lineTo(cx, cy);
+      }
+      ctx.stroke();
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(2, 2);
+    this._roofGravelTexture = tex;
+    return tex;
+  }
+
+  createBrickTownhouse(x, z, w = 18, h = 16, d = 26, rotY = 0, options = {}) {
+    const bGroup = new THREE.Group();
+    bGroup.position.set(x, 0, z);
+    bGroup.rotation.y = rotY;
+
+    const brickTex = this.getBrickTexture();
+    const stoneTex = this.getStorefrontStoneTexture();
+    const roofTex = this.getRoofGravelTexture();
+
+    const brickMat = new THREE.MeshStandardMaterial({
+      color: 0xb55335,
+      roughness: 0.85,
+      map: brickTex || undefined
+    });
+    const stoneMat = new THREE.MeshStandardMaterial({
+      color: 0x7c7a76,
+      roughness: 0.9,
+      map: stoneTex || undefined
+    });
+    const plinthMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.95 });
+    const roofMat = new THREE.MeshStandardMaterial({
+      color: 0x334155,
+      roughness: 0.95,
+      map: roofTex || undefined
+    });
+    const trimMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.8 });
+    const glassMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.2, metalness: 0.5 });
+    const woodDoorMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.7 });
+
+    // 1. Concrete Foundation Plinth
+    const plinthH = 1.0;
+    const plinth = new THREE.Mesh(new THREE.BoxGeometry(w + 0.4, plinthH, d + 0.4), plinthMat);
+    plinth.position.y = plinthH / 2;
+    plinth.receiveShadow = true;
+    bGroup.add(plinth);
+
+    // 2. Main Red Brick Masonry Body
+    const mainBodyH = h - plinthH;
+    const mainBody = new THREE.Mesh(new THREE.BoxGeometry(w, mainBodyH, d), brickMat);
+    mainBody.position.y = plinthH + mainBodyH / 2;
+    mainBody.castShadow = true;
+    mainBody.receiveShadow = true;
+    bGroup.add(mainBody);
+
+    // 3. Ground Floor Stone Storefront Bay (Front facade at +z)
+    const sfW = w * 0.75;
+    const sfH = 4.2;
+    const sfD = 1.2;
+    const sfGroup = new THREE.Group();
+    sfGroup.position.set(0, plinthH + sfH / 2, d / 2 + sfD / 2);
+
+    // Storefront stone back wall
+    const sfWall = new THREE.Mesh(new THREE.BoxGeometry(sfW, sfH, sfD), stoneMat);
+    sfWall.castShadow = true;
+    sfGroup.add(sfWall);
+
+    // Storefront Cornice entablature slab on top
+    const sfCornice = new THREE.Mesh(new THREE.BoxGeometry(sfW + 0.6, 0.45, sfD + 0.5), trimMat);
+    sfCornice.position.y = sfH / 2 + 0.22;
+    sfCornice.castShadow = true;
+    sfGroup.add(sfCornice);
+
+    // 4 Pilasters framing shop windows and door
+    for (let i = 0; i < 4; i++) {
+      const px = -sfW / 2 + (i * sfW) / 3;
+      const pilaster = new THREE.Mesh(new THREE.BoxGeometry(0.55, sfH, 0.25), stoneMat);
+      pilaster.position.set(px, 0, sfD / 2 + 0.12);
+      pilaster.castShadow = true;
+      sfGroup.add(pilaster);
+    }
+
+    // 2 Large multi-pane display windows
+    const winW = (sfW - 2.8) / 2;
+    const winH = 2.4;
+    for (let side of [-1, 1]) {
+      const dispWin = new THREE.Mesh(new THREE.BoxGeometry(winW, winH, 0.1), glassMat);
+      dispWin.position.set(side * (sfW / 4), 0.1, sfD / 2 + 0.15);
+      sfGroup.add(dispWin);
+
+      // Window mullions grid
+      const mullionH = new THREE.Mesh(new THREE.BoxGeometry(winW, 0.08, 0.12), trimMat);
+      mullionH.position.set(side * (sfW / 4), 0.1, sfD / 2 + 0.16);
+      sfGroup.add(mullionH);
+      const mullionV = new THREE.Mesh(new THREE.BoxGeometry(0.08, winH, 0.12), trimMat);
+      mullionV.position.set(side * (sfW / 4), 0.1, sfD / 2 + 0.16);
+      sfGroup.add(mullionV);
+    }
+
+    // Central white entrance door
+    const door = new THREE.Mesh(new THREE.BoxGeometry(1.4, 2.6, 0.1), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.5 }));
+    door.position.set(0, -0.7, sfD / 2 + 0.15);
+    sfGroup.add(door);
+    bGroup.add(sfGroup);
+
+    // 4. Upper Floors Arched Windows (Front Facade - Floors 2 & 3)
+    for (let floor = 0; floor < 2; floor++) {
+      const wy = plinthH + sfH + 2.2 + floor * 4.6;
+      for (let col = -1; col <= 1; col++) {
+        const wx = col * (w * 0.28);
+        // Window opening
+        const win = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.8, 0.18), glassMat);
+        win.position.set(wx, wy, d / 2 + 0.08);
+        bGroup.add(win);
+
+        // Arched stone lintel / header
+        const archHead = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.22, 12, 1, false, 0, Math.PI), trimMat);
+        archHead.rotation.z = Math.PI;
+        archHead.position.set(wx, wy + 1.4, d / 2 + 0.08);
+        bGroup.add(archHead);
+
+        // Stone window sill
+        const sill = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.4), trimMat);
+        sill.position.set(wx, wy - 1.4, d / 2 + 0.18);
+        bGroup.add(sill);
+      }
+    }
+
+    // 5. Roof Structure (Recessed Deck, Parapet Walls, Chimney, HVAC)
+    const roofY = h;
+    const paraH = 1.1;
+    const paraN = new THREE.Mesh(new THREE.BoxGeometry(w + 0.4, paraH, 0.6), trimMat);
+    paraN.position.set(0, roofY + paraH / 2, -d / 2);
+    bGroup.add(paraN);
+    const paraS = new THREE.Mesh(new THREE.BoxGeometry(w + 0.4, paraH, 0.6), trimMat);
+    paraS.position.set(0, roofY + paraH / 2, d / 2);
+    bGroup.add(paraS);
+    const paraE = new THREE.Mesh(new THREE.BoxGeometry(0.6, paraH, d), trimMat);
+    paraE.position.set(w / 2, roofY + paraH / 2, 0);
+    bGroup.add(paraE);
+    const paraW = new THREE.Mesh(new THREE.BoxGeometry(0.6, paraH, d), trimMat);
+    paraW.position.set(-w / 2, roofY + paraH / 2, 0);
+    bGroup.add(paraW);
+
+    // Recessed roof deck
+    const roofDeck = new THREE.Mesh(new THREE.BoxGeometry(w - 0.6, 0.2, d - 0.6), roofMat);
+    roofDeck.position.set(0, roofY + 0.1, 0);
+    roofDeck.receiveShadow = true;
+    bGroup.add(roofDeck);
+
+    // Brick Chimney stack with stone capping rim
+    const chimney = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.2, 1.2), brickMat);
+    chimney.position.set(-w * 0.25, roofY + 1.1, -d * 0.2);
+    chimney.castShadow = true;
+    const chimCap = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.2, 1.4), trimMat);
+    chimCap.position.y = 1.15;
+    chimney.add(chimCap);
+    bGroup.add(chimney);
+
+    // Industrial HVAC Compressor Unit with Curved Duct Elbows
+    const hvac = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.4, 1.8), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.6, roughness: 0.4 }));
+    hvac.position.set(w * 0.22, roofY + 0.7, d * 0.1);
+    hvac.castShadow = true;
+    const duct1 = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.12, 6, 12, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.7 }));
+    duct1.rotation.y = Math.PI / 2;
+    duct1.position.set(0, 0.3, 1.0);
+    hvac.add(duct1);
+    bGroup.add(hvac);
+
+    // 6. Side Arched Entrance Door with Concrete Stoop Stairs
+    const sideDoorX = w / 2;
+    const sideDoorZ = -d * 0.25;
+    const sideDoor = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.8, 1.6), woodDoorMat);
+    sideDoor.position.set(sideDoorX + 0.05, plinthH + 1.4, sideDoorZ);
+    bGroup.add(sideDoor);
+
+    const archTrim = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.2, 12, 1, false, 0, Math.PI), trimMat);
+    archTrim.rotation.x = Math.PI / 2;
+    archTrim.position.set(sideDoorX + 0.08, plinthH + 2.8, sideDoorZ);
+    bGroup.add(archTrim);
+
+    // Concrete Stairs (4 steps leading down)
+    for (let s = 0; s < 4; s++) {
+      const step = new THREE.Mesh(new THREE.BoxGeometry(0.5 + s * 0.35, 0.22, 2.2), plinthMat);
+      step.position.set(sideDoorX + 0.35 + s * 0.35, plinthH - s * 0.22, sideDoorZ);
+      bGroup.add(step);
+    }
+
+    // 7. Side Vertical Drainage Downspout Pipe
+    const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, h - 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.6 }));
+    pipe.position.set(w / 2 + 0.14, (h - 1.2) / 2 + plinthH, d * 0.28);
+    pipe.castShadow = true;
+    bGroup.add(pipe);
+
+    // 8. Side Facade Windows (Rectangular sash windows with stone sills)
+    for (let floor = 0; floor < 3; floor++) {
+      const wy = plinthH + 2.2 + floor * 4.6;
+      for (let col = -1; col <= 1; col++) {
+        const wz = col * (d * 0.25);
+        if (floor === 0 && wz < 0) continue; // skip where side door is
+        const sideWin = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.2, 1.4), glassMat);
+        sideWin.position.set(w / 2 + 0.08, wy, wz);
+        bGroup.add(sideWin);
+
+        const sideSill = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.2, 1.7), trimMat);
+        sideSill.position.set(w / 2 + 0.16, wy - 1.1, wz);
+        bGroup.add(sideSill);
+      }
+    }
+
+    this.scene.add(bGroup);
+    return bGroup;
+  }
+
+  buildCityTownhouses() {
+    const townhousePlacements = [
+      // Central Avenue Commercial Blocks (x=0, z=0)
+      [-22, 45, 18, 16, 26, 0],
+      [22, 45, 18, 16, 26, 0],
+      [-22, -80, 18, 16, 26, Math.PI],
+      [22, -80, 18, 16, 26, Math.PI],
+
+      // West & East Boulevard Blocks
+      [-75, -18, 16, 15, 24, Math.PI / 2],
+      [75, -18, 16, 15, 24, -Math.PI / 2],
+      [-75, 20, 16, 15, 24, Math.PI / 2],
+      [75, 20, 16, 15, 24, -Math.PI / 2],
+
+      // Residential & Retail Rows
+      [-45, 85, 18, 16, 26, 0],
+      [45, 85, 18, 16, 26, 0]
+    ];
+
+    townhousePlacements.forEach(t => {
+      this.createBrickTownhouse(t[0], t[1], t[2], t[3], t[4], t[5]);
     });
   }
 
