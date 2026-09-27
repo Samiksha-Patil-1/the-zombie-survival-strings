@@ -420,7 +420,7 @@ class SurvivalGame3D {
   }
 
   /* ========================================================================
-     4. ANIMATED 3D SURVIVOR & WEAPONS (Alexei)
+     4. ANIMATED 3D SURVIVOR & WEAPONS (Alexei - Protagonist)
      ======================================================================== */
   initPlayer() {
     this.playerGroup = new THREE.Group();
@@ -428,27 +428,276 @@ class SurvivalGame3D {
     this.playerGroup.position.set(-25, 0, -10);
     this.scene.add(this.playerGroup);
 
-    // Torso
-    this.playerBody = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.45), new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.7 }));
-    this.playerBody.position.y = 1.3; this.playerBody.castShadow = true;
-    this.playerGroup.add(this.playerBody);
+    // --- 1. Torso & Tactical Armor Rig ---
+    this.playerTorsoGroup = new THREE.Group();
+    this.playerTorsoGroup.position.y = 1.15;
+    this.playerGroup.add(this.playerTorsoGroup);
 
-    // Backpack
-    const pack = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 0.35), new THREE.MeshStandardMaterial({ color: 0x52525b }));
-    pack.position.set(0, 1.3, -0.35); this.playerGroup.add(pack);
+    // Weather-worn tactical jacket
+    const jacketMat = new THREE.MeshStandardMaterial({ color: 0x2b333e, roughness: 0.75 });
+    const jacket = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.82, 0.44), jacketMat);
+    jacket.castShadow = true;
+    this.playerTorsoGroup.add(jacket);
+    this.playerBody = jacket; // maintain compatibility
 
-    // Head
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 8), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-    head.position.y = 2.15; this.playerGroup.add(head);
+    // Tactical plate carrier body armor (front & back ballistic plates)
+    const vestMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.6, metalness: 0.2 });
+    const vestFront = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.64, 0.12), vestMat);
+    vestFront.position.set(0, 0.04, 0.20);
+    this.playerTorsoGroup.add(vestFront);
 
-    // Legs
-    const legGeo = new THREE.BoxGeometry(0.32, 0.85, 0.32);
-    const legMat = new THREE.MeshStandardMaterial({ color: 0x1f2937 });
-    this.playerLegL = new THREE.Mesh(legGeo, legMat);
-    this.playerLegL.position.set(-0.22, 0.42, 0); this.playerGroup.add(this.playerLegL);
+    // Tactical chest MOLLE ammo magazine pouches (3 pouches)
+    const pouchMat = new THREE.MeshStandardMaterial({ color: 0x3f3f46, roughness: 0.8 });
+    for (let i = -1; i <= 1; i++) {
+      const magPouch = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.18, 0.08), pouchMat);
+      magPouch.position.set(i * 0.17, -0.12, 0.27);
+      this.playerTorsoGroup.add(magPouch);
+    }
 
-    this.playerLegR = new THREE.Mesh(legGeo, legMat);
-    this.playerLegR.position.set(0.22, 0.42, 0); this.playerGroup.add(this.playerLegR);
+    // Survivor VHF Radio Unit with whip antenna on left chest
+    const radioMesh = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.16, 0.08), new THREE.MeshStandardMaterial({ color: 0x111827 }));
+    radioMesh.position.set(-0.21, 0.18, 0.26);
+    const radioAntenna = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.35, 6), new THREE.MeshStandardMaterial({ color: 0x71717a }));
+    radioAntenna.position.set(0, 0.22, 0);
+    radioMesh.add(radioAntenna);
+    this.playerTorsoGroup.add(radioMesh);
+
+    // Combat dagger in chest sheath
+    const knifeSheath = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.26, 0.06), new THREE.MeshStandardMaterial({ color: 0x27272a }));
+    knifeSheath.position.set(0.22, 0.15, 0.26);
+    knifeSheath.rotation.z = -0.3;
+    const knifeHilt = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.10, 6), new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.8 }));
+    knifeHilt.position.set(0, 0.15, 0);
+    knifeSheath.add(knifeHilt);
+    this.playerTorsoGroup.add(knifeSheath);
+
+    // Tactical utility duty belt with brass buckle
+    const beltMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.9 });
+    const dutyBelt = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.12, 0.46), beltMat);
+    dutyBelt.position.set(0, -0.42, 0);
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 0.05), new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.7, roughness: 0.3 }));
+    buckle.position.set(0, 0, 0.24);
+    dutyBelt.add(buckle);
+    this.playerTorsoGroup.add(dutyBelt);
+
+    // Tactical sidearm holster on right hip
+    const holster = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.26, 0.14), beltMat);
+    holster.position.set(0.40, -0.48, 0.04);
+    holster.rotation.z = 0.1;
+    this.playerTorsoGroup.add(holster);
+
+    // Olive-drab shemagh / survival neck scarf
+    const scarfMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.9 });
+    const scarf = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 0.20, 10), scarfMat);
+    scarf.position.set(0, 0.46, 0);
+    this.playerTorsoGroup.add(scarf);
+
+    // --- 2. Heavy Tactical Backpack (Rucksack) ---
+    this.playerBackpackGroup = new THREE.Group();
+    this.playerBackpackGroup.position.set(0, 1.20, -0.28);
+    this.playerGroup.add(this.playerBackpackGroup);
+
+    const packMat = new THREE.MeshStandardMaterial({ color: 0x374151, roughness: 0.85 });
+    const rucksack = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.72, 0.30), packMat);
+    rucksack.castShadow = true;
+    this.playerBackpackGroup.add(rucksack);
+
+    // Rolled sleeping bedroll strapped horizontally across top
+    const bedrollMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
+    const bedroll = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.64, 12), bedrollMat);
+    bedroll.rotation.z = Math.PI / 2;
+    bedroll.position.set(0, 0.42, 0.02);
+    this.playerBackpackGroup.add(bedroll);
+
+    // Bedroll nylon compression straps
+    const strapMat = new THREE.MeshStandardMaterial({ color: 0x09090b });
+    const strapL = new THREE.Mesh(new THREE.TorusGeometry(0.105, 0.015, 6, 12), strapMat);
+    strapL.rotation.y = Math.PI / 2; strapL.position.set(-0.18, 0.42, 0.02); this.playerBackpackGroup.add(strapL);
+    const strapR = new THREE.Mesh(new THREE.TorusGeometry(0.105, 0.015, 6, 12), strapMat);
+    strapR.rotation.y = Math.PI / 2; strapR.position.set(0.18, 0.42, 0.02); this.playerBackpackGroup.add(strapR);
+
+    // Dual side utility pouches & water canteen
+    const sidePouchL = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.34, 0.18), packMat);
+    sidePouchL.position.set(-0.31, -0.05, 0); this.playerBackpackGroup.add(sidePouchL);
+    const canteen = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.28, 8), new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.5 }));
+    canteen.position.set(0.31, -0.05, 0); this.playerBackpackGroup.add(canteen);
+
+    // Survival hatchet / crowbar strapped to pack
+    const hatchetHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.52, 6), new THREE.MeshStandardMaterial({ color: 0x78350f }));
+    hatchetHandle.position.set(0.24, 0.10, -0.16); hatchetHandle.rotation.z = 0.25;
+    const hatchetHead = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.08, 0.04), new THREE.MeshStandardMaterial({ color: 0xa1a1aa, metalness: 0.8 }));
+    hatchetHead.position.set(0, 0.24, 0); hatchetHandle.add(hatchetHead);
+    this.playerBackpackGroup.add(hatchetHandle);
+
+    // --- 3. Head, Face & Tactical Cap (Alexei) ---
+    this.playerHeadGroup = new THREE.Group();
+    this.playerHeadGroup.position.set(0, 1.95, 0);
+    this.playerGroup.add(this.playerHeadGroup);
+
+    // Head base (Alexei's face & cranium)
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xdca97a, roughness: 0.65 });
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.23, 16, 14), skinMat);
+    head.scale.set(0.92, 1.08, 1.0);
+    this.playerHeadGroup.add(head);
+
+    // Eyes with pupils (focused, hardened gaze)
+    const eyeWhiteMat = new THREE.MeshBasicMaterial({ color: 0xf1f5f9 });
+    const pupilMat = new THREE.MeshBasicMaterial({ color: 0x1e1b18 });
+
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.038, 8, 8), eyeWhiteMat);
+    eyeL.position.set(-0.075, 0.03, 0.20); this.playerHeadGroup.add(eyeL);
+    const pupilL = new THREE.Mesh(new THREE.SphereGeometry(0.018, 6, 6), pupilMat);
+    pupilL.position.set(-0.075, 0.03, 0.23); this.playerHeadGroup.add(pupilL);
+
+    const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.038, 8, 8), eyeWhiteMat);
+    eyeR.position.set(0.075, 0.03, 0.20); this.playerHeadGroup.add(eyeR);
+    const pupilR = new THREE.Mesh(new THREE.SphereGeometry(0.018, 6, 6), pupilMat);
+    pupilR.position.set(0.075, 0.03, 0.23); this.playerHeadGroup.add(pupilR);
+
+    // Dark brow ridges
+    const browMat = new THREE.MeshStandardMaterial({ color: 0x271f19 });
+    const browL = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.024, 0.04), browMat);
+    browL.position.set(-0.075, 0.08, 0.21); browL.rotation.z = -0.12; this.playerHeadGroup.add(browL);
+    const browR = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.024, 0.04), browMat);
+    browR.position.set(0.075, 0.08, 0.21); browR.rotation.z = 0.12; this.playerHeadGroup.add(browR);
+
+    // Nose
+    const nose = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.09, 0.06), skinMat);
+    nose.position.set(0, -0.01, 0.23); this.playerHeadGroup.add(nose);
+
+    // Rugged beard stubble / 5 o'clock shadow
+    const stubbleMat = new THREE.MeshStandardMaterial({ color: 0x382c23, roughness: 0.9 });
+    const stubble = new THREE.Mesh(new THREE.CylinderGeometry(0.20, 0.21, 0.14, 12, 1, false, -Math.PI * 0.4, Math.PI * 0.8), stubbleMat);
+    stubble.position.set(0, -0.14, 0.04); this.playerHeadGroup.add(stubble);
+
+    // Tactical watch cap / survivor beanie
+    const capMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.85 });
+    const beanie = new THREE.Mesh(new THREE.SphereGeometry(0.245, 16, 14, 0, Math.PI * 2, 0, Math.PI * 0.58), capMat);
+    beanie.position.set(0, 0.05, -0.01); this.playerHeadGroup.add(beanie);
+    const capBrim = new THREE.Mesh(new THREE.TorusGeometry(0.235, 0.045, 8, 20), capMat);
+    capBrim.rotation.x = Math.PI / 2; capBrim.position.set(0, 0.05, 0); this.playerHeadGroup.add(capBrim);
+
+    // Hair strands peeking out around ears and collar
+    const hairMat = new THREE.MeshStandardMaterial({ color: 0x261d16, roughness: 0.9 });
+    const hairBack = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.16, 0.10), hairMat);
+    hairBack.position.set(0, -0.08, -0.18); this.playerHeadGroup.add(hairBack);
+
+    // Tactical comms earpiece with boom mic on left ear
+    const commsMesh = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.06), new THREE.MeshStandardMaterial({ color: 0x111827 }));
+    commsMesh.position.set(-0.22, 0.01, 0.02);
+    const boomMic = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.16, 6), new THREE.MeshStandardMaterial({ color: 0x52525b }));
+    boomMic.rotation.z = Math.PI / 3; boomMic.position.set(0.06, -0.06, 0.08); commsMesh.add(boomMic);
+    this.playerHeadGroup.add(commsMesh);
+
+    // --- 4. Articulated Arms & Tactical Gloves ---
+    const sleeveMat = jacketMat;
+    const gloveMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.8 });
+
+    // LEFT ARM
+    this.playerArmL = new THREE.Group();
+    this.playerArmL.position.set(-0.44, 1.48, 0);
+    this.playerGroup.add(this.playerArmL);
+
+    const upperArmL = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.38, 8), sleeveMat);
+    upperArmL.position.y = -0.19; this.playerArmL.add(upperArmL);
+
+    const forearmL = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.068, 0.36, 8), skinMat);
+    forearmL.position.y = -0.48; this.playerArmL.add(forearmL);
+
+    // Tactical wrist compass / digital watch
+    const watchMesh = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.07, 0.09), new THREE.MeshStandardMaterial({ color: 0x09090b }));
+    watchMesh.position.y = -0.56;
+    const watchScreen = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, 0.092), new THREE.MeshBasicMaterial({ color: 0x00f5d4 }));
+    watchMesh.add(watchScreen);
+    this.playerArmL.add(watchMesh);
+
+    // Left tactical fingerless glove
+    const handL = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.14, 0.08), gloveMat);
+    handL.position.set(0, -0.68, 0.02); this.playerArmL.add(handL);
+
+    // RIGHT ARM (Holds Weapon in TPS Mode)
+    this.playerArmR = new THREE.Group();
+    this.playerArmR.position.set(0.44, 1.48, 0);
+    this.playerGroup.add(this.playerArmR);
+
+    const upperArmR = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.38, 8), sleeveMat);
+    upperArmR.position.y = -0.19; this.playerArmR.add(upperArmR);
+
+    const forearmR = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.068, 0.36, 8), skinMat);
+    forearmR.position.y = -0.48; this.playerArmR.add(forearmR);
+
+    const handR = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.14, 0.08), gloveMat);
+    handR.position.set(0, -0.68, 0.02); this.playerArmR.add(handR);
+
+    // Attach TPS 3D Weapons to Alexei's Right Hand
+    this.tpsWeaponPistol = new THREE.Group();
+    const gunBody = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.12, 0.34), new THREE.MeshStandardMaterial({ color: 0x18181b, metalness: 0.8, roughness: 0.3 }));
+    gunBody.position.set(0, -0.06, -0.14); this.tpsWeaponPistol.add(gunBody);
+    const gunSupp = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.28, 8), new THREE.MeshStandardMaterial({ color: 0x09090b, metalness: 0.7 }));
+    gunSupp.rotation.x = Math.PI / 2; gunSupp.position.set(0, -0.03, -0.38); this.tpsWeaponPistol.add(gunSupp);
+    this.tpsWeaponPistol.position.set(0, -0.68, 0.04);
+    this.playerArmR.add(this.tpsWeaponPistol);
+
+    this.tpsWeaponBat = new THREE.Group();
+    const batWood = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.035, 0.95, 8), new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.7 }));
+    batWood.position.set(0, 0.35, 0); this.tpsWeaponBat.add(batWood);
+    const batWire = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.015, 6, 10), new THREE.MeshStandardMaterial({ color: 0xa1a1aa, metalness: 0.8 }));
+    batWire.position.set(0, 0.60, 0); this.tpsWeaponBat.add(batWire);
+    this.tpsWeaponBat.position.set(0, -0.68, 0.04);
+    this.tpsWeaponBat.rotation.x = 0.5;
+    this.tpsWeaponBat.visible = false;
+    this.playerArmR.add(this.tpsWeaponBat);
+
+    // --- 5. Articulated Legs, Tactical Knee Armor & Combat Boots ---
+    const pantsMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+    const kneePadMat = new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.5, metalness: 0.3 });
+    const bootMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.85 });
+
+    // LEFT LEG HIP PIVOT
+    this.playerLegL = new THREE.Group();
+    this.playerLegL.position.set(-0.20, 0.86, 0);
+    this.playerGroup.add(this.playerLegL);
+
+    const thighL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.44, 0.24), pantsMat);
+    thighL.position.y = -0.22; this.playerLegL.add(thighL);
+    const pocketL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.20, 0.16), pantsMat);
+    pocketL.position.set(-0.14, -0.20, 0); this.playerLegL.add(pocketL);
+
+    // Tactical knee pad
+    const kneeL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.18, 0.08), kneePadMat);
+    kneeL.position.set(0, -0.42, 0.13); this.playerLegL.add(kneeL);
+
+    const calfL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.42, 0.22), pantsMat);
+    calfL.position.y = -0.60; this.playerLegL.add(calfL);
+
+    // Combat Boot Left
+    const bootL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.22, 0.36), bootMat);
+    bootL.position.set(0, -0.77, 0.06); this.playerLegL.add(bootL);
+    const soleL = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.06, 0.40), new THREE.MeshStandardMaterial({ color: 0x000000 }));
+    soleL.position.set(0, -0.87, 0.06); this.playerLegL.add(soleL);
+
+    // RIGHT LEG HIP PIVOT
+    this.playerLegR = new THREE.Group();
+    this.playerLegR.position.set(0.20, 0.86, 0);
+    this.playerGroup.add(this.playerLegR);
+
+    const thighR = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.44, 0.24), pantsMat);
+    thighR.position.y = -0.22; this.playerLegR.add(thighR);
+    const pocketR = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.20, 0.16), pantsMat);
+    pocketR.position.set(0.14, -0.20, 0); this.playerLegR.add(pocketR);
+
+    // Tactical knee pad
+    const kneeR = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.18, 0.08), kneePadMat);
+    kneeR.position.set(0, -0.42, 0.13); this.playerLegR.add(kneeR);
+
+    const calfR = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.42, 0.22), pantsMat);
+    calfR.position.y = -0.60; this.playerLegR.add(calfR);
+
+    // Combat Boot Right
+    const bootR = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.22, 0.36), bootMat);
+    bootR.position.set(0, -0.77, 0.06); this.playerLegR.add(bootR);
+    const soleR = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.06, 0.40), new THREE.MeshStandardMaterial({ color: 0x000000 }));
+    soleR.position.set(0, -0.87, 0.06); this.playerLegR.add(soleR);
 
     // Weapons
     this.initWeapons();
@@ -490,44 +739,181 @@ class SurvivalGame3D {
   }
 
   /* ========================================================================
-     5. NPC SURVIVORS
+     5. NPC SURVIVORS (Detailed 3D Characters with Role Outfits)
      ======================================================================== */
   initSurvivors() {
-    this.createSurvivor(50, -48, "DR. EVELYN REED", 0x38bdf8, "Doctor", [
+    this.createSurvivor(50, -48, "DR. EVELYN REED", "Doctor", [
       "Alexei! You made it. The clinic triage bay was overrun on Day 2.",
       "If we recover my heavy synthesis medical crate, I can produce the Day 7 antiviral cure for extraction Zulu-9!",
       "Will you prioritize the vaccine research, or escape with raw firepower?"
     ]);
 
-    this.createSurvivor(-34, -42, "MARCUS VANCE", 0xf59e0b, "Engineer", [
+    this.createSurvivor(-34, -42, "MARCUS VANCE", "Engineer", [
       "Generator is purring, Alexei. But each appliance we flip on pushes our heat radius deeper into the streets.",
       "Bring me 40 scrap metal from the overpass and I'll craft an automated sentry turret."
     ]);
 
-    this.createSurvivor(-22, -22, "SGT. DARIUS COLE", 0x10b981, "Soldier", [
+    this.createSurvivor(-22, -22, "SGT. DARIUS COLE", "Soldier", [
       "Watchtower clear. The acoustic Swarmers are pacing the highway.",
       "Remember: crouching cuts your acoustic noise down to a whisper. Don't sprint unless you have to."
     ]);
   }
 
-  createSurvivor(x, z, name, color, role, lines) {
+  createSurvivor(x, z, name, role, lines) {
     const group = new THREE.Group();
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.8, 8), new THREE.MeshStandardMaterial({ color }));
-    body.position.y = 0.9; body.castShadow = true; group.add(body);
+    const headPivot = new THREE.Group();
+    headPivot.position.y = 1.95;
+    group.add(headPivot);
 
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 8), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-    head.position.y = 1.95; group.add(head);
+    if (role === "Doctor") {
+      // --- DR. EVELYN REED (Virologist / Physician) ---
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xf5c3a6, roughness: 0.65 });
+      const docHead = new THREE.Mesh(new THREE.SphereGeometry(0.22, 14, 14), skinMat);
+      docHead.scale.set(0.9, 1.05, 0.95); headPivot.add(docHead);
+
+      const hairMat = new THREE.MeshStandardMaterial({ color: 0x603813, roughness: 0.8 });
+      const hairBun = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), hairMat);
+      hairBun.position.set(0, 0.05, -0.22); headPivot.add(hairBun);
+
+      // Medical wireframe glasses
+      const glassMat = new THREE.MeshBasicMaterial({ color: 0x94a3b8 });
+      const glasses = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.06, 0.04), glassMat);
+      glasses.position.set(0, 0.03, 0.20); headPivot.add(glasses);
+
+      // Torso: Lab Coat over Surgical Scrubs
+      const coatMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.6 });
+      const scrubsMat = new THREE.MeshStandardMaterial({ color: 0x0d9488, roughness: 0.7 });
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.92, 0.40), coatMat);
+      body.position.y = 1.25; body.castShadow = true; group.add(body);
+
+      const scrubPanel = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.60, 0.04), scrubsMat);
+      scrubPanel.position.set(0, 1.30, 0.19); group.add(scrubPanel);
+
+      // Stethoscope around neck
+      const stethMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.8 });
+      const stethTube = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.02, 6, 12), new THREE.MeshStandardMaterial({ color: 0x1f2937 }));
+      stethTube.rotation.x = Math.PI / 2; stethTube.position.set(0, 1.62, 0.04); group.add(stethTube);
+      const stethDisc = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.02, 8), stethMat);
+      stethDisc.rotation.x = Math.PI / 2; stethDisc.position.set(0, 1.45, 0.22); group.add(stethDisc);
+
+      // Red Cross medical armband
+      const armBand = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.22), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
+      armBand.position.set(-0.35, 1.45, 0); group.add(armBand);
+
+      // Holding Antiviral Cure Sample Tablet / Injector
+      const vial = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.22, 8), new THREE.MeshBasicMaterial({ color: 0x00f5d4 }));
+      vial.rotation.z = Math.PI / 4; vial.position.set(0.32, 1.10, 0.24); group.add(vial);
+
+      // Legs & clinic shoes
+      const legMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+      const legL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.80, 0.22), legMat);
+      legL.position.set(-0.16, 0.40, 0); group.add(legL);
+      const legR = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.80, 0.22), legMat);
+      legR.position.set(0.16, 0.40, 0); group.add(legR);
+
+    } else if (role === "Engineer") {
+      // --- MARCUS VANCE (Chief Engineer) ---
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xdca97a, roughness: 0.7 });
+      const engHead = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 14), skinMat);
+      headPivot.add(engHead);
+
+      // Rugged beard & mechanic cap
+      const beardMat = new THREE.MeshStandardMaterial({ color: 0x3d2716, roughness: 0.9 });
+      const beard = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.16, 0.18), beardMat);
+      beard.position.set(0, -0.10, 0.12); headPivot.add(beard);
+
+      const capMat = new THREE.MeshStandardMaterial({ color: 0x374151 });
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.25, 14, 14, 0, Math.PI * 2, 0, Math.PI * 0.5), capMat);
+      cap.position.y = 0.05; headPivot.add(cap);
+
+      // Dual welding goggles on forehead
+      const goggleMat = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.6 });
+      const gogL = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.05, 8), goggleMat);
+      gogL.rotation.x = Math.PI / 2; gogL.position.set(-0.08, 0.12, 0.21); headPivot.add(gogL);
+      const gogR = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.05, 8), goggleMat);
+      gogR.rotation.x = Math.PI / 2; gogR.position.set(0.08, 0.12, 0.21); headPivot.add(gogR);
+
+      // Torso: Industrial Orange Overalls with grease smudges
+      const suitMat = new THREE.MeshStandardMaterial({ color: 0xea580c, roughness: 0.8 });
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.95, 0.44), suitMat);
+      body.position.y = 1.25; body.castShadow = true; group.add(body);
+
+      // Heavy leather tool belt with 3D pipe wrench
+      const beltMat = new THREE.MeshStandardMaterial({ color: 0x78350f });
+      const toolBelt = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.14, 0.46), beltMat);
+      toolBelt.position.set(0, 0.80, 0); group.add(toolBelt);
+
+      const wrenchMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.85 });
+      const wrenchHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.42, 6), wrenchMat);
+      wrenchHandle.position.set(-0.40, 0.72, 0.08); wrenchHandle.rotation.z = -0.2; group.add(wrenchHandle);
+      const wrenchHead = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.08, 0.06), wrenchMat);
+      wrenchHead.position.set(0, 0.20, 0); wrenchHandle.add(wrenchHead);
+
+      // Work boots
+      const bootMat = new THREE.MeshStandardMaterial({ color: 0x1c1917 });
+      const legL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.75, 0.24), suitMat);
+      legL.position.set(-0.18, 0.40, 0); group.add(legL);
+      const bootL = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.20, 0.38), bootMat);
+      bootL.position.set(-0.18, 0.10, 0.05); group.add(bootL);
+
+      const legR = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.75, 0.24), suitMat);
+      legR.position.set(0.18, 0.40, 0); group.add(legR);
+      const bootR = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.20, 0.38), bootMat);
+      bootR.position.set(0.18, 0.10, 0.05); group.add(bootR);
+
+    } else {
+      // --- SGT. DARIUS COLE (Watchtower Combat Soldier) ---
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xdca97a, roughness: 0.7 });
+      const soldierHead = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 14), skinMat);
+      headPivot.add(soldierHead);
+
+      // Combat scar across left eye
+      const scar = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.12, 0.02), new THREE.MeshBasicMaterial({ color: 0x991b1b }));
+      scar.position.set(-0.08, 0.04, 0.22); scar.rotation.z = 0.3; headPivot.add(scar);
+
+      // Ballistic combat helmet with NVG mount
+      const helmetMat = new THREE.MeshStandardMaterial({ color: 0x365314, roughness: 0.6 });
+      const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.265, 14, 14, 0, Math.PI * 2, 0, Math.PI * 0.6), helmetMat);
+      helmet.position.y = 0.05; headPivot.add(helmet);
+      const nvgMount = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.04), new THREE.MeshStandardMaterial({ color: 0x18181b }));
+      nvgMount.position.set(0, 0.14, 0.24); headPivot.add(nvgMount);
+
+      // Military Woodland Camouflage BDU & Tactical Assault Vest
+      const camoMat = new THREE.MeshStandardMaterial({ color: 0x3f4f2e, roughness: 0.8 });
+      const vestMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.6 });
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.95, 0.44), camoMat);
+      body.position.y = 1.25; body.castShadow = true; group.add(body);
+
+      const tacVest = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.70, 0.16), vestMat);
+      tacVest.position.set(0, 1.28, 0.18); group.add(tacVest);
+
+      // Assault rifle slung in patrol ready position
+      const gunMat = new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.8 });
+      const rifle = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.16, 0.85), gunMat);
+      rifle.position.set(0.12, 1.15, 0.36); rifle.rotation.set(0.3, 0.4, -0.6); group.add(rifle);
+
+      // Combat cargo pants and boots
+      const legL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.75, 0.24), camoMat);
+      legL.position.set(-0.18, 0.40, 0); group.add(legL);
+      const legR = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.75, 0.24), camoMat);
+      legR.position.set(0.18, 0.40, 0); group.add(legR);
+    }
+
+    // Survivor Overhead 3D Role Beacon
+    const markerMat = new THREE.MeshBasicMaterial({ color: role === "Doctor" ? 0x00f5d4 : (role === "Engineer" ? 0xf59e0b : 0x10b981) });
+    const beacon = new THREE.Mesh(new THREE.OctahedronGeometry(0.14, 0), markerMat);
+    beacon.position.y = 2.45; group.add(beacon);
 
     group.position.set(x, 0, z);
     this.scene.add(group);
 
-    const sData = { name, role, mesh: group, dialogue: lines, idx: 0, x, z, radius: 3.8, prompt: `Talk to ${name} (${role}) — Press E` };
+    const sData = { name, role, mesh: group, headPivot, beacon, dialogue: lines, idx: 0, x, z, radius: 4.2, prompt: `Talk to ${name} (${role}) — Press E` };
     this.survivors.push(sData);
     this.interactiveObjects.push(sData);
   }
 
   /* ========================================================================
-     6. ANIMATED 3D ZOMBIES
+     6. AAA ANIMATED 3D HORROR ZOMBIES
      ======================================================================== */
   initZombies() {
     this.zombies = [];
@@ -544,52 +930,299 @@ class SurvivalGame3D {
     const z = Math.sin(angle) * dist;
 
     const group = new THREE.Group();
-    let skinColor = 0x64748b;
-    let eyeColor = 0xeab308;
+
+    // Archetype parameters
+    let skinColor = 0x44533c; // Rotten mottled olive green
+    let eyeColor = 0xef4444;  // Infected glowing red
     let speed = 3.2;
     let hp = 55;
+    let scale = 1.0;
 
     if (type === 'Swarm') {
-      skinColor = 0x991b1b; speed = 4.4; hp = 45;
+      // Sprinter / Rabid Feral Infected
+      skinColor = 0x542626; eyeColor = 0xf59e0b; speed = 5.2; hp = 42; scale = 0.95;
     } else if (type === 'Ambusher') {
-      skinColor = 0x18181b; eyeColor = 0x38bdf8; speed = 4.8; hp = 35;
+      // Mutated Shadow Lurker
+      skinColor = 0x151f18; eyeColor = 0x00f5d4; speed = 4.6; hp = 38; scale = 0.98;
     } else if (type === 'Tank') {
-      skinColor = 0x334155; speed = 1.8; hp = 220;
+      // Bloated Mutated Goliath Behemoth
+      skinColor = 0x333b2e; eyeColor = 0x22c55e; speed = 1.9; hp = 240; scale = 1.85;
     }
 
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.75, 1.2, 0.45), new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.8 }));
-    torso.position.y = 1.1; torso.castShadow = true; group.add(torso);
+    group.scale.set(scale, scale, scale);
 
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.45, 0.42), new THREE.MeshStandardMaterial({ color: skinColor }));
-    head.position.y = 1.95; group.add(head);
-
+    const skinMat = new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.92 });
+    const goreMat = new THREE.MeshStandardMaterial({ color: 0x5e0b0b, roughness: 0.8 });
+    const boneMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d8, roughness: 0.6 });
+    const toothMat = new THREE.MeshStandardMaterial({ color: 0xfef08a, roughness: 0.5 });
     const eyeMat = new THREE.MeshBasicMaterial({ color: eyeColor });
-    const eL = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), eyeMat);
-    eL.position.set(-0.12, 1.98, 0.22); group.add(eL);
-    const eR = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), eyeMat);
-    eR.position.set(0.12, 1.98, 0.22); group.add(eR);
+    const clothMat = new THREE.MeshStandardMaterial({ color: type === 'Tank' ? 0x1f2937 : 0x3b332b, roughness: 0.95 });
 
-    if (type === 'Swarm') {
-      const earMat = new THREE.MeshStandardMaterial({ color: 0x7f1d1d });
-      const earL = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.65, 5), earMat);
-      earL.rotation.z = -0.55; earL.position.set(-0.38, 2.2, 0); group.add(earL);
+    // --- 1. Hunched & Twisted Undead Torso ---
+    const torsoGroup = new THREE.Group();
+    torsoGroup.position.y = 1.15;
+    // Classic horror zombie hunched slouch forward (25 deg forward pitch)
+    torsoGroup.rotation.x = 0.38;
+    torsoGroup.rotation.z = (Math.random() - 0.5) * 0.15; // natural crookedness
+    group.add(torsoGroup);
 
-      const earR = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.65, 5), earMat);
-      earR.rotation.z = 0.55; earR.position.set(0.38, 2.2, 0); group.add(earR);
+    // Torso body core
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.92, 0.42), skinMat);
+    torso.castShadow = true;
+    torsoGroup.add(torso);
+
+    // Shredded tattered shirt
+    const shirt = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.80, 0.44), clothMat);
+    shirt.position.set(0, 0.08, 0);
+    torsoGroup.add(shirt);
+
+    // Jagged hanging clothing rags
+    for (let r = -2; r <= 2; r++) {
+      const rag = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.22, 0.04), clothMat);
+      rag.position.set(r * 0.14, -0.42, 0.21);
+      rag.rotation.z = (Math.random() - 0.5) * 0.4;
+      torsoGroup.add(rag);
     }
 
-    const armGeo = new THREE.BoxGeometry(0.22, 0.8, 0.22);
-    const armL = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: skinColor }));
-    armL.position.set(-0.48, 1.2, 0.2); armL.rotation.x = -0.8; group.add(armL);
+    // Protruding spinal vertebrae along the decaying back
+    for (let v = 0; v < 5; v++) {
+      const vert = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 6), boneMat);
+      vert.position.set(0, 0.32 - v * 0.15, -0.23);
+      torsoGroup.add(vert);
+    }
 
-    const armR = new THREE.Mesh(armGeo, new THREE.MeshStandardMaterial({ color: skinColor }));
-    armR.position.set(0.48, 1.2, 0.2); armR.rotation.x = -0.8; group.add(armR);
+    // EXPOSED RIBCAGE & VISCERA (Gruesome torn chest wound)
+    const wound = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.45, 0.08), goreMat);
+    wound.position.set(0.10, 0.05, 0.22);
+    torsoGroup.add(wound);
+
+    // 3 Curved 3D Rib Bones protruding from torn wound
+    for (let ribIdx = 0; ribIdx < 3; ribIdx++) {
+      const rib = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.022, 6, 8, Math.PI * 0.65), boneMat);
+      rib.rotation.z = Math.PI * 0.15;
+      rib.rotation.y = Math.PI * 0.1;
+      rib.position.set(0.10, 0.18 - ribIdx * 0.12, 0.24);
+      torsoGroup.add(rib);
+    }
+
+    // --- 2. Grotesque Undead Skull & Snarling Jaw ---
+    const headGroup = new THREE.Group();
+    // Twisted, crooked neck posture
+    headGroup.position.set(0, 0.62, 0.12);
+    headGroup.rotation.z = -0.16; // unnatural broken neck tilt
+    headGroup.rotation.x = -0.10;
+    torsoGroup.add(headGroup);
+
+    // Emaciated gaunt skull
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.42, 0.40), skinMat);
+    head.position.y = 0.20;
+    headGroup.add(head);
+
+    // Skull trauma: exposed bone and dark coagulated blood on temple
+    const craniumBlemish = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, 0.06), boneMat);
+    craniumBlemish.position.set(-0.12, 0.35, 0.18);
+    headGroup.add(craniumBlemish);
+    const gorePatch = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.18, 0.04), goreMat);
+    gorePatch.position.set(-0.12, 0.35, 0.19);
+    headGroup.add(gorePatch);
+
+    // Hollow black eye sockets
+    const socketMat = new THREE.MeshBasicMaterial({ color: 0x050505 });
+    const sockL = new THREE.Mesh(new THREE.SphereGeometry(0.065, 6, 6), socketMat);
+    sockL.position.set(-0.10, 0.22, 0.18); headGroup.add(sockL);
+    const sockR = new THREE.Mesh(new THREE.SphereGeometry(0.065, 6, 6), socketMat);
+    sockR.position.set(0.10, 0.22, 0.18); headGroup.add(sockR);
+
+    // Glowing infected eyes
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), eyeMat);
+    eyeL.position.set(-0.10, 0.22, 0.21); headGroup.add(eyeL);
+    const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), eyeMat);
+    eyeR.position.set(0.10, 0.22, 0.21); headGroup.add(eyeR);
+
+    // Broken nasal cavity
+    const noseCavity = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.07, 0.04), socketMat);
+    noseCavity.position.set(0, 0.15, 0.21); headGroup.add(noseCavity);
+
+    // SEPARATE LOWER JAW (Dropped open in snarling scream)
+    const jaw = new THREE.Group();
+    jaw.position.set(0, 0.05, 0.05);
+    jaw.rotation.x = 0.35; // open snarl
+    headGroup.add(jaw);
+
+    const jawBase = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, 0.30), skinMat);
+    jawBase.position.set(0, -0.06, 0.08);
+    jaw.add(jawBase);
+
+    // Bloody throat interior
+    const throat = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.10, 0.12), goreMat);
+    throat.position.set(0, -0.02, 0.08);
+    jaw.add(throat);
+
+    // Jagged yellow bloody teeth lining jaw
+    for (let t = -3; t <= 3; t++) {
+      const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.06, 4), toothMat);
+      tooth.rotation.x = Math.PI;
+      tooth.position.set(t * 0.038, 0.03, 0.20);
+      jaw.add(tooth);
+    }
+    // Upper teeth
+    for (let t = -3; t <= 3; t++) {
+      const toothUpper = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.06, 4), toothMat);
+      toothUpper.position.set(t * 0.038, 0.08, 0.21);
+      headGroup.add(toothUpper);
+    }
+
+    // --- 3. Mutated Archetype Additions ---
+    if (type === 'Swarm') {
+      // Sprinter: Mutated bone spikes erupting from spine
+      for (let s = 0; s < 4; s++) {
+        const spike = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.35, 4), boneMat);
+        spike.rotation.x = -Math.PI / 3;
+        spike.position.set(0, 0.35 - s * 0.18, -0.28);
+        torsoGroup.add(spike);
+      }
+    } else if (type === 'Ambusher') {
+      // Ambusher: Mutated razor bone spurs extending from elbows & dark chitin plates
+      const chitinMat = new THREE.MeshStandardMaterial({ color: 0x0a110d, roughness: 0.5 });
+      const plate = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.60, 0.08), chitinMat);
+      plate.position.set(0, 0.05, -0.22);
+      torsoGroup.add(plate);
+    } else if (type === 'Tank') {
+      // Tank: Glowing toxic tumor boils & massive mutated muscle bulk
+      const boilMat = new THREE.MeshStandardMaterial({ color: 0x84cc16, emissive: 0x4d7c0f, roughness: 0.4 });
+      for (let b = 0; b < 6; b++) {
+        const boil = new THREE.Mesh(new THREE.SphereGeometry(0.12 + Math.random() * 0.08, 8, 8), boilMat);
+        boil.position.set((Math.random() - 0.5) * 0.5, (Math.random() - 0.5) * 0.6, 0.20 + Math.random() * 0.08);
+        torsoGroup.add(boil);
+      }
+      // Rebar sticking out of back from military strike
+      const rebar = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.90, 6), new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.9 }));
+      rebar.position.set(-0.25, 0.35, -0.25); rebar.rotation.x = 0.5;
+      torsoGroup.add(rebar);
+    }
+
+    // --- 4. Elongated Reaching Arms with Lethal Claws ---
+    // Left Arm
+    const armL = new THREE.Group();
+    armL.position.set(-0.48, 0.32, 0.05);
+    armL.rotation.x = -1.15; // reaching forward in strangle pose
+    armL.rotation.z = 0.2;
+    torsoGroup.add(armL);
+
+    const bicepL = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.42, 8), clothMat);
+    bicepL.position.y = -0.21; armL.add(bicepL);
+    const forearmL = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.065, 0.42, 8), skinMat);
+    forearmL.position.y = -0.56; armL.add(forearmL);
+
+    // Lethal Claw Hand Left
+    const clawHandL = new THREE.Group();
+    clawHandL.position.set(0, -0.78, 0); armL.add(clawHandL);
+    const palmL = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.12, 0.05), skinMat);
+    clawHandL.add(palmL);
+
+    // 4 Splayed Bony Fingers + Thumb dripping blood
+    for (let f = -1.5; f <= 1.5; f += 1.0) {
+      const finger = new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.14, 0.024), skinMat);
+      finger.position.set(f * 0.03, -0.10, 0);
+      clawHandL.add(finger);
+      const talon = new THREE.Mesh(new THREE.ConeGeometry(0.015, 0.06, 4), goreMat);
+      talon.rotation.x = Math.PI; talon.position.set(0, -0.09, 0); finger.add(talon);
+    }
+
+    // Right Arm (Giant sledge arm for Tank!)
+    const armR = new THREE.Group();
+    armR.position.set(0.48, 0.32, 0.05);
+    armR.rotation.x = -1.15;
+    armR.rotation.z = -0.2;
+    torsoGroup.add(armR);
+
+    if (type === 'Tank') {
+      // Massive mutated club arm for Tank
+      const bicepR = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.16, 0.50, 8), skinMat);
+      bicepR.position.y = -0.25; armR.add(bicepR);
+      const forearmR = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.20, 0.52, 8), skinMat);
+      forearmR.position.y = -0.68; armR.add(forearmR);
+      const goliathFist = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.38, 0.32), boneMat);
+      goliathFist.position.y = -1.05; armR.add(goliathFist);
+    } else {
+      const bicepR = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.42, 8), clothMat);
+      bicepR.position.y = -0.21; armR.add(bicepR);
+      const forearmR = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.065, 0.42, 8), skinMat);
+      forearmR.position.y = -0.56; armR.add(forearmR);
+
+      const clawHandR = new THREE.Group();
+      clawHandR.position.set(0, -0.78, 0); armR.add(clawHandR);
+      const palmR = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.12, 0.05), skinMat);
+      clawHandR.add(palmR);
+
+      for (let f = -1.5; f <= 1.5; f += 1.0) {
+        const finger = new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.14, 0.024), skinMat);
+        finger.position.set(f * 0.03, -0.10, 0);
+        clawHandR.add(finger);
+        const talon = new THREE.Mesh(new THREE.ConeGeometry(0.015, 0.06, 4), goreMat);
+        talon.rotation.x = Math.PI; talon.position.set(0, -0.09, 0); finger.add(talon);
+      }
+    }
+
+    // --- 5. Decaying Ragged Legs & Bare Rotten Dragging Foot ---
+    const pantsZombieMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.95 });
+
+    // Left Leg (Torn knee with exposed rotting kneecap bone)
+    const legL = new THREE.Group();
+    legL.position.set(-0.20, 0.85, 0);
+    group.add(legL);
+
+    const thighL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.46, 0.22), pantsZombieMat);
+    thighL.position.y = -0.23; legL.add(thighL);
+
+    // Exposed white kneecap bone in ripped trousers
+    const kneeBone = new THREE.Mesh(new THREE.SphereGeometry(0.065, 8, 8), boneMat);
+    kneeBone.position.set(0, -0.44, 0.12); legL.add(kneeBone);
+    const kneeBlood = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.14, 0.04), goreMat);
+    kneeBlood.position.set(0, -0.44, 0.12); legL.add(kneeBlood);
+
+    const calfL = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.42, 0.20), pantsZombieMat);
+    calfL.position.y = -0.62; legL.add(calfL);
+
+    const ruinedShoe = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.18, 0.34), new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.9 }));
+    ruinedShoe.position.set(0, -0.80, 0.06); legL.add(ruinedShoe);
+
+    // Right Leg (Torn pants ending in BARE ROTTING UNDEAD FOOT)
+    const legR = new THREE.Group();
+    legR.position.set(0.20, 0.85, 0);
+    group.add(legR);
+
+    const thighR = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.46, 0.22), pantsZombieMat);
+    thighR.position.y = -0.23; legR.add(thighR);
+
+    const calfR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.42, 0.18), skinMat); // bare rotten calf
+    calfR.position.y = -0.62; legR.add(calfR);
+
+    // Bare rotting foot with blackened toes dragging on street
+    const bareFoot = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.12, 0.32), skinMat);
+    bareFoot.position.set(0, -0.82, 0.06); legR.add(bareFoot);
+    for (let toe = -2; toe <= 2; toe++) {
+      const toeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.04, 0.06), new THREE.MeshStandardMaterial({ color: 0x1c1917 }));
+      toeMesh.position.set(toe * 0.038, -0.83, 0.23);
+      legR.add(toeMesh);
+    }
 
     group.position.set(x, 0, z);
     this.scene.add(group);
 
     this.zombies.push({
-      mesh: group, armL, armR, type, hp, maxHp: hp, speed,
+      mesh: group,
+      torso: torsoGroup,
+      head: headGroup,
+      jaw,
+      armL,
+      armR,
+      legL,
+      legR,
+      type,
+      hp,
+      maxHp: hp,
+      speed,
       state: 'wander',
       wanderTarget: new THREE.Vector3(x + (Math.random() - 0.5) * 35, 0, z + (Math.random() - 0.5) * 35),
       animTime: Math.random() * 10
@@ -781,8 +1414,11 @@ class SurvivalGame3D {
 
   switchWeapon(type) {
     this.playerStats.currentWeapon = type;
-    if (this.weaponObj) this.weaponObj.visible = (type === 'pistol');
-    if (this.batObj) this.batObj.visible = (type === 'bat');
+    const isFps = (this.cameraMode === 'fps');
+    if (this.weaponObj) this.weaponObj.visible = (type === 'pistol' && isFps);
+    if (this.batObj) this.batObj.visible = (type === 'bat' && isFps);
+    if (this.tpsWeaponPistol) this.tpsWeaponPistol.visible = (type === 'pistol' && !isFps);
+    if (this.tpsWeaponBat) this.tpsWeaponBat.visible = (type === 'bat' && !isFps);
     if (window.showToast) window.showToast(`Equipped: ${type === 'pistol' ? 'Suppressed Pistol' : 'Barbed Bat'}`, "#00f5d4");
   }
 
@@ -887,9 +1523,22 @@ class SurvivalGame3D {
         this.zombiesKilled++;
         if (window.horrorAudio) window.horrorAudio.playZombieDeath();
 
-        // Death collapse animation
+        // Visceral death collapse animation
         z.mesh.rotation.x = Math.PI / 2;
-        z.mesh.position.y = 0.25;
+        z.mesh.position.y = 0.20;
+        if (z.jaw) z.jaw.rotation.x = 0.65; // slack dead jaw
+        if (z.armL) z.armL.rotation.x = -0.25;
+        if (z.armR) z.armR.rotation.x = -0.25;
+
+        // Dark expanding blood pool decal on asphalt
+        const poolRadius = (z.type === 'Tank' ? 2.4 : 1.15) + Math.random() * 0.25;
+        const bloodPool = new THREE.Mesh(
+          new THREE.CircleGeometry(poolRadius, 14),
+          new THREE.MeshBasicMaterial({ color: 0x3d0707, transparent: true, opacity: 0.85 })
+        );
+        bloodPool.rotation.x = -Math.PI / 2;
+        bloodPool.position.set(z.mesh.position.x, 0.03, z.mesh.position.z);
+        this.scene.add(bloodPool);
 
         if (window.showToast) {
           window.showToast(`💀 Zombie Eliminated (${z.type})! [Total Kills: ${this.zombiesKilled}]`, "#00f5d4");
@@ -897,11 +1546,12 @@ class SurvivalGame3D {
 
         setTimeout(() => {
           this.scene.remove(z.mesh);
+          this.scene.remove(bloodPool);
           this.zombies = this.zombies.filter(item => item !== z);
           setTimeout(() => {
             if (!this.isGameOver) this.spawnZombieArchetype();
           }, 4500);
-        }, 2200);
+        }, 3200);
       }
     }
   }
@@ -1051,11 +1701,19 @@ class SurvivalGame3D {
         this.playerLegL.rotation.x = Math.sin(this.walkCycle) * 0.6;
         this.playerLegR.rotation.x = -Math.sin(this.walkCycle) * 0.6;
       }
+      if (this.playerArmL) {
+        this.playerArmL.rotation.x = -Math.sin(this.walkCycle) * 0.45;
+      }
+      if (this.playerTorsoGroup) {
+        this.playerTorsoGroup.position.y = 1.15 + Math.sin(this.walkCycle * 2) * 0.04;
+      }
     } else {
       if (this.playerLegL && this.playerLegR) {
         this.playerLegL.rotation.x = 0;
         this.playerLegR.rotation.x = 0;
       }
+      if (this.playerArmL) this.playerArmL.rotation.x = 0;
+      if (this.playerTorsoGroup) this.playerTorsoGroup.position.y = 1.15;
     }
 
     this.playerGroup.rotation.y = this.yaw;
@@ -1066,16 +1724,32 @@ class SurvivalGame3D {
       if (this.batObj) {
         this.batObj.rotation.z = -0.5 + Math.sin(this.swingAnim * Math.PI) * 1.8;
       }
+      if (this.tpsWeaponBat) {
+        this.tpsWeaponBat.rotation.z = Math.sin(this.swingAnim * Math.PI) * 1.8;
+      }
       if (this.swingAnim <= 0) this.playerStats.isAttacking = false;
     }
 
-    // Camera Placement
+    // Camera Placement & First-Person / Third-Person mesh visibility
     const eyeY = this.playerStats.isCrouching ? 1.15 : 1.85;
     if (this.cameraMode === 'fps') {
       this.camera.position.set(this.playerGroup.position.x, eyeY, this.playerGroup.position.z);
+      if (this.playerHeadGroup) this.playerHeadGroup.visible = false;
+      if (this.tpsWeaponPistol) this.tpsWeaponPistol.visible = false;
+      if (this.tpsWeaponBat) this.tpsWeaponBat.visible = false;
+      if (this.weaponObj) this.weaponObj.visible = (this.playerStats.currentWeapon === 'pistol');
+      if (this.batObj) this.batObj.visible = (this.playerStats.currentWeapon === 'bat');
     } else {
       const offset = new THREE.Vector3(0.7, eyeY + 0.35, 2.6).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.yaw);
       this.camera.position.copy(this.playerGroup.position).add(offset);
+      if (this.playerHeadGroup) this.playerHeadGroup.visible = true;
+      if (this.weaponObj) this.weaponObj.visible = false;
+      if (this.batObj) this.batObj.visible = false;
+      if (this.tpsWeaponPistol) this.tpsWeaponPistol.visible = (this.playerStats.currentWeapon === 'pistol');
+      if (this.tpsWeaponBat) this.tpsWeaponBat.visible = (this.playerStats.currentWeapon === 'bat');
+      if (this.playerArmR) {
+        this.playerArmR.rotation.x = this.pitch - 0.25;
+      }
     }
 
     this.camera.rotation.set(0, 0, 0);
@@ -1087,6 +1761,26 @@ class SurvivalGame3D {
     this.flashlight.position.copy(this.camera.position);
     const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.quaternion);
     this.flashlightTarget.position.copy(this.camera.position).add(forward);
+
+    // Update Survivors idle animation and head tracking towards Alexei
+    const timeNow = performance.now() * 0.002;
+    for (let s of this.survivors) {
+      if (s.headPivot && s.mesh) {
+        const distToAlexei = s.mesh.position.distanceTo(this.playerGroup.position);
+        if (distToAlexei < 8.0) {
+          const dx = this.playerGroup.position.x - s.mesh.position.x;
+          const dz = this.playerGroup.position.z - s.mesh.position.z;
+          const targetAngle = Math.atan2(dx, dz) - s.mesh.rotation.y;
+          s.headPivot.rotation.y += (targetAngle - s.headPivot.rotation.y) * 0.08;
+        } else {
+          s.headPivot.rotation.y = Math.sin(timeNow + s.x) * 0.18;
+        }
+      }
+      if (s.beacon) {
+        s.beacon.rotation.y += dt * 2.0;
+        s.beacon.position.y = 2.45 + Math.sin(timeNow * 2.5 + s.z) * 0.08;
+      }
+    }
 
     // Interaction Check
     this.currentInteraction = null;
@@ -1153,9 +1847,31 @@ class SurvivalGame3D {
         z.mesh.position.addScaledVector(dir, z.speed * dt);
         z.mesh.rotation.y = Math.atan2(dir.x, dir.z);
 
-        z.animTime += dt * 6;
-        z.armL.rotation.x = -0.8 + Math.sin(z.animTime) * 0.4;
-        z.armR.rotation.x = -0.8 - Math.sin(z.animTime) * 0.4;
+        z.animTime += dt * (z.type === 'Swarm' ? 10 : (z.type === 'Tank' ? 4.5 : 6.5));
+
+        // Asymmetric shambling limp
+        if (z.legL && z.legR) {
+          z.legL.rotation.x = Math.sin(z.animTime) * 0.65;
+          z.legR.rotation.x = -Math.sin(z.animTime) * 0.42; // dragged bare foot
+        }
+        z.mesh.rotation.z = Math.sin(z.animTime) * 0.06; // limping sway
+
+        // Creepy undead head twitches
+        if (z.head) {
+          z.head.rotation.y = Math.sin(z.animTime * 1.5) * 0.15;
+          z.head.rotation.z = -0.16 + Math.sin(z.animTime * 2.5) * 0.08;
+        }
+
+        // Violent claw slash attack vs reaching stumble
+        if (distP < 2.8) {
+          z.armL.rotation.x = -1.15 + Math.sin(z.animTime * 12) * 0.75;
+          z.armR.rotation.x = -1.15 - Math.cos(z.animTime * 12) * 0.75;
+          if (z.jaw) z.jaw.rotation.x = 0.35 + Math.sin(z.animTime * 10) * 0.25; // snapping bite
+        } else {
+          z.armL.rotation.x = -1.15 + Math.sin(z.animTime) * 0.22;
+          z.armR.rotation.x = -1.15 - Math.sin(z.animTime) * 0.22;
+          if (z.jaw) z.jaw.rotation.x = 0.35;
+        }
       }
 
       // Close combat contact: Zombie actively strikes player
@@ -1317,6 +2033,9 @@ class SurvivalGame3D {
       this.playerLegL.rotation.x = 0;
       this.playerLegR.rotation.x = 0;
     }
+    if (this.playerArmL) this.playerArmL.rotation.x = 0;
+    if (this.playerArmR) this.playerArmR.rotation.x = 0;
+    if (this.playerTorsoGroup) this.playerTorsoGroup.position.y = 1.15;
 
     // 6. Purge ALL Existing Zombies & Spawn Fresh Horde
     for (let z of this.zombies) {
