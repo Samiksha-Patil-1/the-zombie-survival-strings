@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZOMBIE: STRING OF SURVIVAL — 3D/4D/5D Immersive Horror Experience</title>
+  <meta name="description" content="Playable 3D Survival Horror Game: Real-time 4D Day/Night cycle, 5D Bio-Physical survival, Adaptive AI Director, Survivors with Dialogue, and The Survival String DAG state machine.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="js/three.min.js"></script>
+</head>
+<body class="dark-theme">
+  <!-- Scanline & Grain FX Overlay -->
+  <div class="crt-overlay"></div>
+  <div id="infectionOverlay" class="infection-postprocess"></div>
+
+  <!-- Header -->
+  <header class="cyber-header">
+    <div class="header-left">
+      <div class="logo-mark">
+        <span class="icon-pulse"></span>
+        <span class="logo-text">ZOMBIE: STRING OF SURVIVAL</span>
+      </div>
+      <span class="version-tag">3D/4D/5D ENGINE • AAA REAL-TIME SURVIVAL</span>
+    </div>
+
+    <div class="header-center">
+      <div class="hud-ticker">
+        <span class="ticker-label">CYCLE:</span>
+        <span id="hudDayTime" class="ticker-val heat-medium">DAY 1 | 08:00</span>
+        <span class="ticker-sep">|</span>
+        <span class="ticker-label">DIRECTOR:</span>
+        <span id="tickerDirector" class="ticker-val archetype-hunter">HUNTER MATRIX</span>
+        <span class="ticker-sep">|</span>
+        <span class="ticker-label">BASE HEAT:</span>
+        <span id="tickerHeat" class="ticker-val heat-medium">45.0 (RAD: 90m)</span>
+        <span class="ticker-sep">|</span>
+        <span class="ticker-label">INFECTION:</span>
+        <span id="tickerInfection" class="ticker-val infection-low">0.0%</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button id="btnAudioToggle" class="cyber-btn btn-audio">
+        <span class="audio-icon">🔊</span> <span id="audioBtnText">AUDIO FX: ON</span>
+      </button>
+      <a href="https://github.com/Samiksha-Patil-1/the-survival-string" target="_blank" class="cyber-btn btn-github">
+        <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        <span>GITHUB REPO</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Navigation Tabs -->
+  <nav class="system-nav">
+    <button class="nav-tab active" data-tab="game3DTab">
+      <span class="tab-num">01</span>
+      <span class="tab-title">🎮 3D SURVIVAL WORLD</span>
+      <span class="tab-sub">First-Person / Over-Shoulder</span>
+    </button>
+    <button class="nav-tab" data-tab="stringTab">
+      <span class="tab-num">02</span>
+      <span class="tab-title">🕸️ THE SURVIVAL STRING</span>
+      <span class="tab-sub">DAG Narrative Decisions</span>
+    </button>
+    <button class="nav-tab" data-tab="directorTab">
+      <span class="tab-num">03</span>
+      <span class="tab-title">🧠 BEHAVIOR MIRROR</span>
+      <span class="tab-sub">AI Director & Telemetry</span>
+    </button>
+    <button class="nav-tab" data-tab="heatTab">
+      <span class="tab-num">04</span>
+      <span class="tab-title">🔥 BASE HEAT SYSTEM</span>
+      <span class="tab-sub">Dynamic Horde Attraction</span>
+    </button>
+    <button class="nav-tab" data-tab="infectionTab">
+      <span class="tab-num">05</span>
+      <span class="tab-title">🩸 ORGANIC INFECTION</span>
+      <span class="tab-sub">Shader & Audio Degradation</span>
+    </button>
+    <button class="nav-tab" data-tab="arenaTab">
+      <span class="tab-num">06</span>
+      <span class="tab-title">🗺️ TACTICAL MAP SIM</span>
+      <span class="tab-sub">2D District Radar</span>
+    </button>
+  </nav>
+
+  <!-- Main Viewports -->
+  <main class="app-main">
+
+    <!-- TAB 1: 3D/4D/5D IMMERSIVE SURVIVAL ENGINE -->
+    <section id="game3DTab" class="view-panel active">
+      <div class="game3d-layout">
+        <div class="viewport-3d-wrapper" id="game3DContainer">
+          <!-- Top Compass Bar (PUBG / Free Fire Style) -->
+          <div class="top-compass-bar">
+            <span class="compass-icon">🧭</span>
+            <span id="hudCompassBar" class="compass-deg">0° | N</span>
+          </div>
+
+          <!-- Quick Action Toolbar -->
+          <div class="hud-top-actions">
+            <button id="btnToggleDrone" class="action-pill-btn"><span class="pill-icon">🛸</span> FLY CITY DRONE [T]</button>
+            <button id="btnToggleCamView" class="action-pill-btn"><span class="pill-icon">👁️</span> 1ST/3RD VIEW [V]</button>
+            <button id="btnEquipPistol" class="action-pill-btn active"><span class="pill-icon">🔫</span> PISTOL [1]</button>
+            <button id="btnEquipBat" class="action-pill-btn"><span class="pill-icon">🏏</span> BARBED BAT [2]</button>
+            <button id="btnRestartGameHud" class="action-pill-btn btn-restart-hud"><span class="pill-icon">↺</span> RESTART GAME</button>
+          </div>
+
+          <!-- Center Crosshair & Hit Marker -->
+          <div class="crosshair-center">
+            <span class="ch-dot"></span>
+            <span id="hitMarkerCrosshair" class="hit-marker-overlay">✕</span>
+          </div>
+
+          <!-- Interaction Prompt Overlay -->
+          <div id="interactionPrompt" class="interaction-hud-prompt" style="display: none;">
+            Press E to Interact
+          </div>
+
+          <!-- Hunted Warning Banner -->
+          <div id="huntedWarningBanner" class="hunted-warning-banner" style="display: none;">
+            <span class="warning-pulse-icon">⚠️</span>
+            <span id="huntedWarningText">ALERT: ZOMBIE HUNTING YOU!</span>
+          </div>
+
+          <!-- Red Damage Screen Flash Vignette -->
+          <div id="damageFlashOverlay" class="damage-flash-overlay"></div>
+
+          <!-- Game Over / Victory / Replay Modal -->
+          <div id="gameOverModal" class="game-over-overlay" style="display: none;">
+            <div class="game-over-card">
+              <div class="go-badge" id="goBadge">STATUS: HUNTED & CONSUMED</div>
+              <h1 class="go-title" id="goTitle">SURVIVAL TERMINATED</h1>
+              <p class="go-desc" id="goDesc">You were hunted down and overwhelmed by District 4 mutants.</p>
+              
+              <div class="go-stats-grid">
+                <div class="go-stat-item">
+                  <span class="go-stat-lbl">DAYS SURVIVED</span>
+                  <span class="go-stat-val" id="goStatDays">1</span>
+                </div>
+                <div class="go-stat-item">
+                  <span class="go-stat-lbl">ZOMBIES ELIMINATED</span>
+                  <span class="go-stat-val highlight" id="goStatKills">0</span>
+                </div>
+                <div class="go-stat-item">
+                  <span class="go-stat-lbl">FINAL INFECTION</span>
+                  <span class="go-stat-val infection" id="goStatInfection">0.0%</span>
+                </div>
+                <div class="go-stat-item">
+                  <span class="go-stat-lbl">BASE HEAT RADIUS</span>
+                  <span class="go-stat-val" id="goStatHeat">90m</span>
+                </div>
+              </div>
+
+              <div class="go-actions">
+                <button id="btnReplayGame" class="replay-primary-btn">
+                  <span class="btn-replay-icon">↺</span>
+                  <span>END PREVIOUS PLAY &amp; START NEW GAME</span>
+                </button>
+                <button id="btnHardReloadGameOver" class="cyber-btn" style="border-color: rgba(230, 57, 70, 0.4); color: var(--accent-crimson); justify-content: center;">
+                  <span>⚡</span>
+                  <span>HARD RESET APPLICATION (RELOAD PAGE)</span>
+                </button>
+                <button id="btnExploreGraphFromDeath" class="cyber-btn" style="justify-content: center;">
+                  <span>🕸️</span>
+                  <span>INSPECT SURVIVAL STRING DAG</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Click To Play / Enter Survival Mode Overlay -->
+          <div id="clickToPlayOverlay" class="click-to-play-overlay">
+            <div class="overlay-modal">
+              <div class="overlay-badge">AAA 3D/4D/5D REAL-TIME ENGINE</div>
+              <h1 class="overlay-title">ZOMBIE: STRING OF SURVIVAL</h1>
+              <p class="overlay-desc">You are Alexei, trapped in District 4. Survive 7 days, rescue survivors, manage base heat, and escape.</p>
+              
+              <div class="overlay-btn-group">
+                <button id="btnStartGamePlay" class="play-primary-btn">
+                  <span class="btn-play-icon">▶</span>
+                  <span>ENTER SURVIVAL ZONE (START GAME)</span>
+                </button>
+                <button id="btnQuickDroneStart" class="play-drone-btn">
+                  <span>🛸</span>
+                  <span>FLY DRONE [T]</span>
+                </button>
+                <button id="btnRestartFromPause" class="play-drone-btn btn-restart-pause">
+                  <span>↺</span>
+                  <span>RESTART RUN</span>
+                </button>
+              </div>
+
+              <div class="overlay-controls-grid">
+                <div><span>MOVE:</span> <b>W, A, S, D</b></div>
+                <div><span>LOOK:</span> <b>MOUSE (Click/Drag)</b></div>
+                <div><span>ATTACK:</span> <b>LEFT CLICK</b></div>
+                <div><span>AIM (ADS):</span> <b>RIGHT CLICK</b></div>
+                <div><span>CROUCH (STEALTH):</span> <b>C</b></div>
+                <div><span>SPRINT:</span> <b>SHIFT</b></div>
+                <div><span>DRONE FLY:</span> <b>T</b></div>
+                <div><span>1ST/3RD VIEW:</span> <b>V</b></div>
+                <div><span>INTERACT / TALK:</span> <b>E</b></div>
+                <div><span>UNLOCK MOUSE:</span> <b>ESC</b></div>
+              </div>
+              <div class="overlay-note">💡 Tip: You can drag your mouse or click to lock mouse look. Audio effects initialize automatically on click!</div>
+            </div>
+          </div>
+
+          <!-- 3D HUD Ingame Display -->
+          <div class="hud-3d-stats">
+            <div class="hud-stat-box">
+              <span class="hud-sub-label">VITAL SIGNS</span>
+              <div class="hud-bar-row">
+                <span>HEALTH:</span>
+                <div class="progress-bar"><div id="hudHealthBar3D" class="progress-fill health" style="width: 100%;"></div></div>
+              </div>
+              <div class="hud-bar-row">
+                <span>STAMINA:</span>
+                <div class="progress-bar"><div id="hudStaminaBar3D" class="progress-fill stamina" style="width: 100%;"></div></div>
+              </div>
+              <div class="hud-bar-row">
+                <span>INFECTION:</span>
+                <div class="progress-bar"><div id="hudInfectionBar3D" class="progress-fill infection" style="width: 0%;"></div></div>
+              </div>
+            </div>
+
+            <div class="hud-stat-box">
+              <span class="hud-sub-label">TACTICAL LOADOUT</span>
+              <div class="hud-val-row">
+                <span>AMMO:</span> <b id="hudAmmo3D" class="val-highlight">24 / 24</b>
+              </div>
+              <div class="hud-val-row">
+                <span>POSTURE:</span> <span id="hudPosture" class="hud-tag">STANDING</span>
+              </div>
+              <div class="hud-val-row">
+                <span>FLASHLIGHT:</span> <span class="hud-tag">[F] ACTIVE</span>
+              </div>
+            </div>
+
+            <div class="hud-stat-box controls-card">
+              <span class="hud-sub-label">SURVIVOR CONTROLS</span>
+              <p><b>CLICK CANVAS</b> : Lock Mouse Look</p>
+              <p><b>W / A / S / D</b> : Move</p>
+              <p><b>LEFT CLICK</b> : Fire / Attack</p>
+              <p><b>RIGHT CLICK</b> : Aim Down Sights (ADS)</p>
+              <p><b>C</b> : Crouch (Stealth)</p>
+              <p><b>SHIFT</b> : Sprint</p>
+              <p><b>E</b> : Talk / Loot / Toggle Generator</p>
+              <p><b>F</b> : Flashlight | <b>V</b> : 1st/3rd Person</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3D Sidebar: Characters & Missions -->
+        <aside class="sidebar-3d">
+          <div class="panel-card glass-panel">
+            <h3 class="card-title">DISTRICT 4 SURVIVOR ROSTER</h3>
+            <p class="card-desc">Find, dialogue, and recruit NPCs across the city to unlock specialized facilities.</p>
+
+            <div class="character-roster">
+              <!-- Dr. Evelyn Reed -->
+              <div class="character-card">
+                <div class="char-header">
+                  <span class="char-name">DR. EVELYN REED</span>
+                  <span class="char-role doctor">DOCTOR</span>
+                </div>
+                <p class="char-loc">📍 Location: St. Jude Clinic (Triage Bay)</p>
+                <p class="char-skill">Skill: Treats severe infection & trauma. Synthesizes Day 7 Cure if medical crate retrieved.</p>
+              </div>
+
+              <!-- Marcus Vance -->
+              <div class="character-card">
+                <div class="char-header">
+                  <span class="char-name">MARCUS VANCE</span>
+                  <span class="char-role engineer">ENGINEER</span>
+                </div>
+                <p class="char-loc">📍 Location: Safehouse Substation (Generator Room)</p>
+                <p class="char-skill">Skill: Operates Diesel Generator; crafts automated 5.56mm sentry turrets.</p>
+              </div>
+
+              <!-- Sgt. Darius Cole -->
+              <div class="character-card">
+                <div class="char-header">
+                  <span class="char-name">SGT. DARIUS COLE</span>
+                  <span class="char-role soldier">SOLDIER</span>
+                </div>
+                <p class="char-loc">📍 Location: Safehouse Perimeter Watchtower</p>
+                <p class="char-skill">Skill: Marks approaching mutant hordes; sniper perimeter support.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card glass-panel">
+            <h3 class="card-title">ACTIVE 7-DAY OBJECTIVES</h3>
+            <div class="mission-timeline">
+              <div class="timeline-step done">
+                <span class="step-day">DAY 1</span>
+                <span>Secure District 4 Safehouse & Power Grid</span>
+              </div>
+              <div class="timeline-step active">
+                <span class="step-day">DAY 2</span>
+                <span>Infiltrate St. Jude Clinic & Rescue Dr. Evelyn</span>
+              </div>
+              <div class="timeline-step">
+                <span class="step-day">DAY 3</span>
+                <span>Scavenge Police Precinct for High-Caliber Ammo</span>
+              </div>
+              <div class="timeline-step">
+                <span class="step-day">DAY 5</span>
+                <span>Venture through Metro Tunnels into Biogenix Lab</span>
+              </div>
+              <div class="timeline-step highlight">
+                <span class="step-day">DAY 7</span>
+                <span>Reach Harbor Pier for Final Evacuation Flight Zulu-9</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- TAB 2: THE SURVIVAL STRING (DAG GRAPH) -->
+    <section id="stringTab" class="view-panel">
+      <div class="graph-layout">
+        <div class="graph-canvas-wrapper glass-panel">
+          <div class="graph-header">
+            <div>
+              <h2>DIRECTED ACYCLIC GRAPH (DAG) STATE MACHINE</h2>
+              <p>Every choice creates a node with edges unlocking future world states and triggering UnityEvents.</p>
+            </div>
+            <div class="graph-actions">
+              <button id="btnExportGraphJson" class="cyber-btn">💾 EXPORT GRAPH JSON</button>
+              <button id="btnResetGraph" class="cyber-btn btn-danger">↺ RESET GRAPH</button>
+            </div>
+          </div>
+          <canvas id="dagCanvas" width="900" height="520"></canvas>
+          <div class="canvas-legend">
+            <span><span class="dot unlocked"></span> Committed Node</span>
+            <span><span class="dot available"></span> Available Edge</span>
+            <span><span class="dot locked"></span> Locked Prerequisite</span>
+            <span><span class="dot blocked"></span> Mutually Exclusive</span>
+          </div>
+        </div>
+
+        <div class="graph-inspector glass-panel">
+          <h3 class="inspector-title">SELECTED NODE INSPECTOR</h3>
+          <div id="inspectorContent">
+            <p class="empty-hint">Click any node in the graph to inspect its ScriptableObject definition and execute activation events.</p>
+          </div>
+          <div class="concept-preview">
+            <span class="preview-tag">DESIGN CONCEPT ART</span>
+            <img src="Assets/Art/Concepts/survival_string_menu_1790488388736.jpg" alt="The Survival String Concept Art" class="img-preview" id="imgConceptModal">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: BEHAVIOR MIRROR & TELEMETRY -->
+    <section id="directorTab" class="view-panel">
+      <div class="director-layout">
+        <div class="telemetry-col glass-panel">
+          <h2>PLAYER TELEMETRY 4D RADAR</h2>
+          <p>Mathematical vector normalization updated dynamically based on real-time ingame actions.</p>
+          
+          <div class="radar-container">
+            <canvas id="radarCanvas" width="380" height="380"></canvas>
+          </div>
+
+          <div class="manual-sim-controls">
+            <h4>SIMULATE TELEMETRY INGESTION:</h4>
+            <div class="slider-control">
+              <label>Stealth (Crouch Time): <span id="lblSimStealth">25%</span></label>
+              <input type="range" id="sliderStealth" min="0" max="100" value="25">
+            </div>
+            <div class="slider-control">
+              <label>Aggression (Shots Fired): <span id="lblSimAggression">25%</span></label>
+              <input type="range" id="sliderAggression" min="0" max="100" value="25">
+            </div>
+            <div class="slider-control">
+              <label>Looting (Containers Opened): <span id="lblSimLooting">25%</span></label>
+              <input type="range" id="sliderLooting" min="0" max="100" value="25">
+            </div>
+            <div class="slider-control">
+              <label>Base Building (Fortifications): <span id="lblSimBuilding">25%</span></label>
+              <input type="range" id="sliderBuilding" min="0" max="100" value="25">
+            </div>
+          </div>
+        </div>
+
+        <div class="archetypes-col glass-panel">
+          <h2>AI DIRECTOR ENCOUNTER MATRICES</h2>
+          <p>The Director activates specific enemy mutations when a playstyle dominates by &gt;40%.</p>
+
+          <div class="archetype-cards">
+            <!-- Swarm Card -->
+            <div id="cardSwarm" class="archetype-card">
+              <div class="card-badge">COUNTERS AGGRESSION</div>
+              <h3 class="archetype-name">SOUND-ADAPTED SWARMER</h3>
+              <p class="archetype-lore">Blind stalker with top face calcified in hardened bone. Overgrown bat-like ears detect gunfire and sprinting across hundreds of meters.</p>
+              <div class="stat-spec">
+                <span>PULL METHOD: Acoustic NavMesh Vector</span>
+                <span>SPAWN CHANCE: <b>85%</b> (Aggression &gt;40%)</span>
+              </div>
+            </div>
+
+            <!-- Ambusher Card -->
+            <div id="cardAmbusher" class="archetype-card">
+              <div class="card-badge">COUNTERS STEALTH</div>
+              <h3 class="archetype-name">CEILING-CRAWLING AMBUSHER</h3>
+              <p class="archetype-lore">Skinny predator with dark charcoal skin and elongated bone-claws. Clings to rafters and vents, dropping down directly on crouched players.</p>
+              <div class="stat-spec">
+                <span>PULL METHOD: Vertical Drop NavMesh Link</span>
+                <span>SPAWN CHANCE: <b>85%</b> (Stealth &gt;40%)</span>
+              </div>
+            </div>
+
+            <!-- Hunter Card -->
+            <div id="cardHunter" class="archetype-card active">
+              <div class="card-badge">COUNTERS LOOTING / BALANCED</div>
+              <h3 class="archetype-name">RELENTLESS TRACKER</h3>
+              <p class="archetype-lore">Fast, persistent tracker that patrols supply caches and intercept corridors. Tracks scents and opens containers left behind.</p>
+              <div class="stat-spec">
+                <span>PULL METHOD: Supply Path Interception</span>
+                <span>SPAWN CHANCE: <b>65%</b> (Default / Scavenging)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="gameplay-concept-row">
+            <img src="Assets/Art/Concepts/behavior_mirror_mockup_1790488440893.jpg" alt="Behavior Mirror Gameplay Mockup" class="concept-wide">
+            <div class="concept-caption">
+              <b>Gameplay Mockup:</b> Survivor hiding under a desk with a silenced pistol while a Sound-Adapted Swarmer listens for footsteps.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: BASE HEAT SYSTEM -->
+    <section id="heatTab" class="view-panel">
+      <div class="heat-layout">
+        <div class="heat-radar-wrapper glass-panel">
+          <div class="graph-header">
+            <div>
+              <h2>DYNAMIC BASE HEAT ATTRACTION RADAR</h2>
+              <p>Formula: <code>SphereCollider.Radius = TotalHeat * 2.0m</code>. Any zombie entering the sphere targets the Safehouse door.</p>
+            </div>
+          </div>
+          <canvas id="heatRadarCanvas" width="640" height="540"></canvas>
+        </div>
+
+        <div class="heat-controls-wrapper glass-panel">
+          <h3>APPLIANCE HEAT SOURCES</h3>
+          <p>Every active generator, radio, workbench, and floodlight increases base heat, pulling the horde.</p>
+
+          <div id="heatSourceList" class="heat-source-list"></div>
+
+          <div class="heat-readout-card">
+            <div class="metric-row">
+              <span>TOTAL ACCUMULATED HEAT:</span>
+              <span id="radarTotalHeatVal" class="metric-value">70.0</span>
+            </div>
+            <div class="metric-row">
+              <span>DYNAMIC TRIGGER RADIUS:</span>
+              <span id="radarRadiusVal" class="metric-value">140.0 meters</span>
+            </div>
+            <div class="metric-row">
+              <span>ZOMBIES IN PERIMETER:</span>
+              <span id="radarZombiesDrawn" class="metric-value highlight">0</span>
+            </div>
+          </div>
+
+          <button id="btnPulseHeat" class="cyber-btn">⚡ OVERCHARGE GENERATOR (+40 HEAT)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: ORGANIC INFECTION SYSTEM -->
+    <section id="infectionTab" class="view-panel">
+      <div class="infection-layout">
+        <div class="viewport-wrapper glass-panel">
+          <div class="graph-header">
+            <div>
+              <h2>ORGANIC INFECTION SENSORY EXPERIENCE</h2>
+              <p>No health bars or UI. Perceived solely through visual aberration, vignette, and psychoacoustic audio muffling.</p>
+            </div>
+          </div>
+
+          <div class="simulated-screen" id="simScreen">
+            <img src="Assets/Art/Concepts/day_seven_chaos_1790488413008.jpg" alt="Day 7 Chaos" class="screen-bg" id="screenBgImg">
+            <div class="screen-vignette" id="screenVignette"></div>
+            <div class="screen-chromatic" id="screenChromatic"></div>
+            <canvas id="bioVeinCanvas" width="800" height="450"></canvas>
+            <div class="fov-indicator" id="fovIndicator">FOV: 65.0°</div>
+          </div>
+        </div>
+
+        <div class="infection-sidebar glass-panel">
+          <h3>INFECTION CONTROLS (0.0 — 100.0)</h3>
+          <p>Adjust the slider to preview real-time shader properties and audio mixer changes.</p>
+
+          <div class="infection-slider-box">
+            <div class="slider-val-readout">
+              <span>INFECTION LEVEL:</span>
+              <span id="infectionValText" class="infection-pct">0.0%</span>
+            </div>
+            <input type="range" id="sliderInfectionLevel" min="0" max="100" value="0" step="0.5">
+          </div>
+
+          <div class="sensory-checklist">
+            <h4>DIAGNOSTIC MANIFESTATIONS:</h4>
+            <div class="check-item">
+              <span class="check-dot" id="dotAberration"></span>
+              <span>Chromatic Aberration Dispersion: <b id="lblAberration">0.0%</b></span>
+            </div>
+            <div class="check-item">
+              <span class="check-dot" id="dotVeins"></span>
+              <span>Bio-Vein Tendril Infiltration: <b id="lblVeins">0.0%</b></span>
+            </div>
+            <div class="check-item">
+              <span class="check-dot" id="dotAudioLPF"></span>
+              <span>Audio Mixer Low-Pass Filter: <b id="lblAudioLPF">22,000 Hz (Crisp)</b></span>
+            </div>
+            <div class="check-item">
+              <span class="check-dot" id="dotWhispers"></span>
+              <span>Binaural Whisper Hallucinations: <b id="lblWhispers">INACTIVE (&lt;50%)</b></span>
+            </div>
+          </div>
+
+          <div class="btn-grid-row">
+            <button id="btnInfect25" class="action-btn-red">+25% INFECTION</button>
+            <button id="btnCure25" class="cyber-btn">-25% ANTIVIRAL</button>
+            <button id="btnResetInfection" class="action-btn-secondary">RESET TO 0%</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: 2D TACTICAL RADAR SIMULATION -->
+    <section id="arenaTab" class="view-panel">
+      <div class="arena-layout">
+        <div class="arena-canvas-container">
+          <canvas id="arenaCanvas" width="960" height="600"></canvas>
+        </div>
+        <aside class="arena-sidebar">
+          <div class="panel-card glass-panel">
+            <h3 class="card-title">TACTICAL MAP SIMULATOR</h3>
+            <p class="card-desc">Top-down view of District 4 with live zombie pathfinding.</p>
+            <button id="btnSpawnHorde" class="action-btn-red">⚠️ TRIGGER NOISE HORDE EVENT</button>
+            <button id="btnResetArena" class="action-btn-secondary">RESET SIMULATION</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="toastNotification" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="audio.js"></script>
+  <script src="simulation.js"></script>
+  <script src="js/game3d.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
