@@ -80,6 +80,9 @@ class SurvivalGame3D {
     this.interactiveObjects = [];
     this.particles = null;
     this.fireLights = [];
+    this.ambientTrees = [];
+    this._barkTexture = null;
+    this._foliageTexture = null;
 
     // Base Heat Manager
     this.baseHeat = {
@@ -276,6 +279,9 @@ class SurvivalGame3D {
     this.createSupplyCrate(50, 35, 'ammo');
     this.createSupplyCrate(-45, 35, 'rations');
     this.createSupplyCrate(0, -25, 'ammo');
+
+    // Atmospheric Deciduous Trees (Bifurcated Trunk & Sprawling Umbrella Canopy)
+    this.buildCityTrees();
   }
 
   createRoad(x, z, w, l, isHorizontal) {
@@ -417,6 +423,341 @@ class SurvivalGame3D {
     this.createSupplyCrate(50, 35, 'ammo');
     this.createSupplyCrate(-45, 35, 'rations');
     this.createSupplyCrate(0, -25, 'ammo');
+  }
+
+  /* ========================================================================
+     3B. ATMOSPHERIC DECIDUOUS TREES (Procedural Forked Trunk & Umbrella Canopy)
+     ======================================================================== */
+  getBarkTexture() {
+    if (this._barkTexture) return this._barkTexture;
+    if (typeof document === 'undefined') return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    // Base warm deep brown gradient
+    const grad = ctx.createLinearGradient(0, 0, 256, 0);
+    grad.addColorStop(0, '#352216');
+    grad.addColorStop(0.3, '#4a3322');
+    grad.addColorStop(0.7, '#3c291b');
+    grad.addColorStop(1, '#2c1c11');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 256, 512);
+
+    // Vertical rough bark fissures and grooves
+    for (let i = 0; i < 55; i++) {
+      const x = Math.random() * 256;
+      const w = 2 + Math.random() * 5;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      let curX = x;
+      for (let y = 0; y < 512; y += 28) {
+        curX += (Math.random() - 0.5) * 8;
+        ctx.lineTo(curX, y);
+      }
+      ctx.lineWidth = w;
+      ctx.strokeStyle = Math.random() > 0.4 ? '#190e07' : '#231409';
+      ctx.stroke();
+    }
+
+    // Bark ridges and lighter woody highlights
+    for (let i = 0; i < 35; i++) {
+      const x = Math.random() * 256;
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      let curX = x;
+      for (let y = 0; y < 512; y += 36) {
+        curX += (Math.random() - 0.5) * 6;
+        ctx.lineTo(curX, y);
+      }
+      ctx.lineWidth = 1 + Math.random() * 2;
+      ctx.strokeStyle = '#5a3d28';
+      ctx.stroke();
+    }
+
+    // Micro-noise striations
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    for (let y = 0; y < 512; y += 4) {
+      if (Math.random() > 0.5) ctx.fillRect(0, y, 256, 2);
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(2, 4);
+    this._barkTexture = tex;
+    return tex;
+  }
+
+  getFoliageTexture() {
+    if (this._foliageTexture) return this._foliageTexture;
+    if (typeof document === 'undefined') return null;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    ctx.clearRect(0, 0, 256, 256);
+
+    // Central woody twig
+    ctx.strokeStyle = '#2b1b11';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(20, 236);
+    ctx.quadraticCurveTo(120, 140, 236, 20);
+    ctx.stroke();
+
+    // Leaf clusters along twigs matching reference pinnate branch
+    const leafColors = ['#1d331a', '#264222', '#31522b', '#182b15', '#3d6135'];
+    for (let i = 0; i < 45; i++) {
+      const t = i / 45;
+      const bx = 20 + t * 216 + (Math.random() - 0.5) * 32;
+      const by = 236 - t * 216 + (Math.random() - 0.5) * 32;
+      const leafAngle = Math.random() * Math.PI * 2;
+      const leafLen = 14 + Math.random() * 12;
+      const leafWid = 6 + Math.random() * 5;
+
+      ctx.save();
+      ctx.translate(bx, by);
+      ctx.rotate(leafAngle);
+      ctx.fillStyle = leafColors[Math.floor(Math.random() * leafColors.length)];
+      ctx.beginPath();
+      ctx.ellipse(0, 0, leafLen, leafWid, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(-leafLen, 0);
+      ctx.lineTo(leafLen, 0);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    this._foliageTexture = tex;
+    return tex;
+  }
+
+  createTree(x, z, scale = 1.0, rotY = 0) {
+    const tree = new THREE.Group();
+    tree.position.set(x, 0, z);
+    tree.rotation.y = rotY;
+    tree.scale.set(scale, scale, scale);
+
+    const barkTex = this.getBarkTexture();
+    const foliageTex = this.getFoliageTexture();
+
+    const barkMat = new THREE.MeshStandardMaterial({
+      color: 0x3d281a,
+      roughness: 0.9,
+      metalness: 0.1,
+      map: barkTex || undefined
+    });
+
+    const leafDarkMat = new THREE.MeshStandardMaterial({
+      color: 0x1b2e19,
+      roughness: 0.85
+    });
+    const leafMidMat = new THREE.MeshStandardMaterial({
+      color: 0x243e21,
+      roughness: 0.8
+    });
+    const leafLightMat = new THREE.MeshStandardMaterial({
+      color: 0x31522a,
+      roughness: 0.75
+    });
+
+    // 1. Soil mound with dark loam & fallen leaves
+    const mound = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.9, 1.35, 0.14, 12),
+      new THREE.MeshStandardMaterial({ color: 0x1c1712, roughness: 0.95 })
+    );
+    mound.position.y = 0.07;
+    mound.receiveShadow = true;
+    tree.add(mound);
+
+    // 2. Lower Trunk (Rising to ~4.0m)
+    const trunkBase = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.52, 4.0, 10), barkMat);
+    trunkBase.position.y = 2.0;
+    trunkBase.castShadow = true;
+    trunkBase.receiveShadow = true;
+    tree.add(trunkBase);
+
+    // 4 Root Flares
+    for (let i = 0; i < 4; i++) {
+      const angle = (i * Math.PI) / 2 + 0.35;
+      const root = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.95, 6), barkMat);
+      root.rotation.x = Math.PI / 2.3;
+      root.rotation.z = angle;
+      root.position.set(Math.cos(angle) * 0.44, 0.28, Math.sin(angle) * 0.44);
+      root.castShadow = true;
+      tree.add(root);
+    }
+
+    // 3. Dual Forked Boughs (The distinctive bifurcated trunk from reference renders)
+    // Left Bough
+    const boughL = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.34, 4.4, 8), barkMat);
+    boughL.position.set(-0.28, 5.8, 0.08);
+    boughL.rotation.z = 0.18;
+    boughL.rotation.x = -0.06;
+    boughL.castShadow = true;
+    boughL.receiveShadow = true;
+    tree.add(boughL);
+
+    // Right Bough
+    const boughR = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.36, 4.8, 8), barkMat);
+    boughR.position.set(0.35, 6.0, -0.06);
+    boughR.rotation.z = -0.22;
+    boughR.rotation.x = 0.08;
+    boughR.castShadow = true;
+    boughR.receiveShadow = true;
+    tree.add(boughR);
+
+    // 4. Secondary Structural Branches
+    const branchDefs = [
+      { x: -0.8, y: 7.6, z: 0.2, len: 3.2, rotZ: 0.52, rotY: 0.6, rad: 0.12 },
+      { x: -0.6, y: 7.4, z: -0.8, len: 2.8, rotZ: 0.44, rotY: 2.3, rad: 0.10 },
+      { x: 0.1, y: 7.7, z: 0.8, len: 3.0, rotX: 0.48, rotY: -0.4, rad: 0.11 },
+      { x: 1.1, y: 8.2, z: -0.3, len: 3.4, rotZ: -0.35, rotY: 1.5, rad: 0.12 },
+      { x: 1.6, y: 7.1, z: 0.4, len: 4.2, rotZ: -0.78, rotY: 0.2, rad: 0.13 }, // Characteristic drooping right limb
+      { x: 1.2, y: 8.0, z: 0.2, len: 3.2, rotZ: -0.55, rotY: -0.3, rad: 0.11 },
+      { x: -0.2, y: 7.8, z: -0.9, len: 2.8, rotX: -0.45, rotY: 3.0, rad: 0.10 }
+    ];
+
+    branchDefs.forEach(b => {
+      const br = new THREE.Mesh(new THREE.CylinderGeometry(b.rad * 0.5, b.rad, b.len, 6), barkMat);
+      br.position.set(b.x, b.y, b.z);
+      if (b.rotZ) br.rotation.z = b.rotZ;
+      if (b.rotX) br.rotation.x = b.rotX;
+      if (b.rotY) br.rotation.y = b.rotY;
+      br.castShadow = true;
+      tree.add(br);
+    });
+
+    // 5. Canopy Foliage Group (Sways in breeze)
+    const canopyGroup = new THREE.Group();
+    tree.add(canopyGroup);
+
+    // 16 Compound Foliage Clusters (Sculpted umbrella canopy matching reference renders)
+    const clusters = [
+      { x: 0.1, y: 11.4, z: 0.0, r: 2.6, sx: 1.4, sy: 0.8, sz: 1.3, mat: leafMidMat },
+      { x: -0.4, y: 12.1, z: -0.2, r: 1.9, sx: 1.2, sy: 0.75, sz: 1.2, mat: leafLightMat },
+      { x: 0.6, y: 11.9, z: 0.3, r: 2.0, sx: 1.3, sy: 0.7, sz: 1.1, mat: leafMidMat },
+      { x: -2.5, y: 10.0, z: 0.4, r: 2.2, sx: 1.3, sy: 0.7, sz: 1.2, mat: leafMidMat },
+      { x: -3.9, y: 8.9, z: 0.2, r: 1.9, sx: 1.4, sy: 0.65, sz: 1.1, mat: leafDarkMat },
+      { x: -1.9, y: 8.7, z: -1.6, r: 1.8, sx: 1.1, sy: 0.7, sz: 1.3, mat: leafDarkMat },
+      { x: 2.3, y: 10.3, z: -0.4, r: 2.3, sx: 1.3, sy: 0.75, sz: 1.2, mat: leafLightMat },
+      { x: 3.9, y: 9.1, z: 0.2, r: 2.1, sx: 1.4, sy: 0.7, sz: 1.2, mat: leafMidMat },
+      { x: 5.1, y: 7.7, z: 0.5, r: 2.0, sx: 1.5, sy: 0.6, sz: 1.1, mat: leafDarkMat }, // Weeping right flank
+      { x: 4.3, y: 7.1, z: 1.2, r: 1.7, sx: 1.3, sy: 0.6, sz: 1.2, mat: leafDarkMat },
+      { x: 0.2, y: 9.5, z: 2.5, r: 2.0, sx: 1.2, sy: 0.65, sz: 1.4, mat: leafMidMat },
+      { x: -0.5, y: 9.3, z: -2.6, r: 1.9, sx: 1.3, sy: 0.7, sz: 1.3, mat: leafDarkMat },
+      { x: 1.7, y: 8.5, z: 2.1, r: 1.7, sx: 1.2, sy: 0.6, sz: 1.2, mat: leafMidMat },
+      { x: -2.1, y: 8.3, z: 1.9, r: 1.6, sx: 1.1, sy: 0.65, sz: 1.1, mat: leafDarkMat },
+      { x: 3.2, y: 8.2, z: -1.8, r: 1.7, sx: 1.2, sy: 0.65, sz: 1.2, mat: leafDarkMat },
+      { x: -3.2, y: 8.0, z: -1.4, r: 1.6, sx: 1.2, sy: 0.6, sz: 1.1, mat: leafDarkMat }
+    ];
+
+    clusters.forEach(c => {
+      const fMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(c.r, 1), c.mat);
+      fMesh.position.set(c.x, c.y, c.z);
+      fMesh.scale.set(c.sx, c.sy, c.sz);
+      fMesh.castShadow = true;
+      fMesh.receiveShadow = true;
+      canopyGroup.add(fMesh);
+    });
+
+    // 6. Feathered Leaf Sprites on Outer Branch Tips (Silhouetted foliage planes)
+    if (foliageTex) {
+      const leafSpriteMat = new THREE.MeshStandardMaterial({
+        map: foliageTex,
+        transparent: true,
+        alphaTest: 0.15,
+        side: THREE.DoubleSide,
+        roughness: 0.8
+      });
+      const leafGeo = new THREE.PlaneGeometry(2.4, 2.4);
+
+      const leafPlanePositions = [
+        { x: -3.8, y: 8.6, z: 0.3, rx: 0.2, ry: 0.5 },
+        { x: 5.2, y: 7.4, z: 0.6, rx: 0.4, ry: -0.6 },
+        { x: 4.4, y: 6.8, z: 1.3, rx: 0.5, ry: 0.2 },
+        { x: 0.2, y: 12.0, z: 0.0, rx: 0.1, ry: 1.1 },
+        { x: 2.4, y: 10.5, z: -0.5, rx: -0.2, ry: 0.8 },
+        { x: -2.6, y: 10.2, z: 0.4, rx: 0.3, ry: -0.4 },
+        { x: 0.3, y: 9.3, z: 2.6, rx: 0.4, ry: 0.0 },
+        { x: -0.6, y: 9.1, z: -2.7, rx: -0.3, ry: 1.2 }
+      ];
+
+      leafPlanePositions.forEach(lp => {
+        const p1 = new THREE.Mesh(leafGeo, leafSpriteMat);
+        p1.position.set(lp.x, lp.y, lp.z);
+        p1.rotation.set(lp.rx, lp.ry, 0);
+        canopyGroup.add(p1);
+
+        const p2 = new THREE.Mesh(leafGeo, leafSpriteMat);
+        p2.position.set(lp.x, lp.y, lp.z);
+        p2.rotation.set(lp.rx, lp.ry + Math.PI / 2, 0);
+        canopyGroup.add(p2);
+      });
+    }
+
+    this.scene.add(tree);
+    this.ambientTrees.push({ group: tree, canopyGroup, x, z, phase: Math.random() * Math.PI * 2 });
+    return tree;
+  }
+
+  buildCityTrees() {
+    const treePlacements = [
+      // Safehouse surroundings (HQ: -40, -40)
+      [-24, -30, 1.0, 0.4],
+      [-54, -28, 1.1, 1.2],
+      [-26, -52, 0.95, 2.1],
+      [-56, -54, 1.05, 3.5],
+
+      // Central crossroads & road medians (x=0, z=0)
+      [-18, 16, 1.0, 0.8],
+      [18, 16, 1.15, 2.3],
+      [-18, -16, 0.9, 1.5],
+      [18, -16, 1.05, 4.1],
+
+      // St. Jude Hospital grounds (50, -60)
+      [32, -45, 1.2, 0.6],
+      [68, -42, 1.0, 1.8],
+      [40, -78, 1.1, 2.9],
+
+      // Police Precinct perimeter (60, 50)
+      [42, 34, 1.1, 0.3],
+      [78, 38, 0.95, 1.9],
+      [54, 68, 1.15, 3.2],
+
+      // Metro Plaza Mall courtyard (-65, 55)
+      [-48, 38, 1.05, 1.1],
+      [-82, 42, 1.1, 2.4],
+      [-52, 72, 0.9, 0.7],
+
+      // Memorial Park Green Zone
+      [-8, 36, 1.2, 1.6],
+      [8, 42, 1.1, 3.0],
+      [-6, -48, 1.05, 0.5],
+      [10, -56, 1.15, 2.2],
+
+      // Highway Overpass flankings (z = -25)
+      [-65, -15, 1.0, 1.4],
+      [65, -15, 1.1, 2.7],
+      [-110, -16, 0.95, 0.2],
+      [110, -16, 1.05, 3.8]
+    ];
+
+    treePlacements.forEach(t => {
+      this.createTree(t[0], t[1], t[2], t[3]);
+    });
   }
 
   /* ========================================================================
@@ -2168,6 +2509,16 @@ class SurvivalGame3D {
         if (pos[i] > 35) pos[i] = 0;
       }
       this.particles.geometry.attributes.position.needsUpdate = true;
+    }
+
+    if (this.ambientTrees) {
+      const timeNow = performance.now() * 0.0014;
+      for (let t of this.ambientTrees) {
+        if (t.canopyGroup) {
+          t.canopyGroup.rotation.z = Math.sin(timeNow + t.phase) * 0.032;
+          t.canopyGroup.rotation.x = Math.cos(timeNow * 0.85 + t.phase) * 0.022;
+        }
+      }
     }
   }
 
