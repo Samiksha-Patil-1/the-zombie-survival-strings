@@ -2223,9 +2223,13 @@ class SurvivalGame3D {
 
     targetElement.addEventListener('mousedown', (e) => {
       if (e.button === 0) {
-        if (!this.mouse.isLocked && !this.hasStartedGame) {
+        if (!this.hasStartedGame) {
           this.initGame();
         } else {
+          // If in active game but pointer isn't locked, re-lock on canvas click
+          if (!this.mouse.isLocked && !this.isPaused && !this.isExited) {
+            try { targetElement.requestPointerLock(); } catch (err) {}
+          }
           this.attack();
         }
       }
@@ -2238,27 +2242,12 @@ class SurvivalGame3D {
       this.mouse.isDragging = false;
     });
 
-    // Detect Exit on Pointer Lock Change / Leaving Game Screen
+    // Update pointer lock state on lock/unlock
     document.addEventListener('pointerlockchange', () => {
       this.mouse.isLocked = (document.pointerLockElement === targetElement);
-      const playOverlay = document.getElementById('clickToPlayOverlay');
-      const exitPopup = document.getElementById('exitGamePopup');
-
-      if (this.mouse.isLocked) {
-        if (playOverlay) playOverlay.style.display = 'none';
-        if (exitPopup) exitPopup.style.display = 'none';
-        this.hasStartedGame = true;
-        this.isPaused = false;
-        this.isExited = false;
-      } else {
-        // Player left active pointer lock / left game screen
-        if (this.hasStartedGame && !this.isGameOver && !this.isExited && !this.isPaused) {
-          this.triggerExit('Player Left Game Screen (Pointer Lock Released)');
-        }
-      }
     });
 
-    // Step 01: Event Listeners for onExit and Leaving Game Screen
+    // Step 01: Event Listeners for onExit
     window.addEventListener('onExit', (e) => {
       const reason = (e && e.detail && e.detail.reason) || 'onExit Triggered';
       this.triggerExit(reason);
@@ -2269,37 +2258,37 @@ class SurvivalGame3D {
       this.triggerExit(reason);
     });
 
-    window.addEventListener('blur', () => {
-      if (this.hasStartedGame && !this.isGameOver && !this.isExited) {
-        this.triggerExit('Window Blurred / Lost Focus');
-      }
-    });
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden && this.hasStartedGame && !this.isGameOver && !this.isExited) {
-        this.triggerExit('Tab Inactive / Screen Left');
-      }
-    });
-
     // Wire HUD Exit and Popup Buttons
     const btnExitHud = document.getElementById('btnExitGameHud');
     if (btnExitHud) {
-      btnExitHud.addEventListener('click', () => this.triggerExit('HUD Exit Button Clicked'));
+      btnExitHud.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.triggerExit('HUD Exit Button Clicked');
+      });
     }
 
     const btnExitCont = document.getElementById('btnExitContinue');
     if (btnExitCont) {
-      btnExitCont.addEventListener('click', () => this.loadMainMenu());
+      btnExitCont.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.loadMainMenu();
+      });
     }
 
     const btnExitNewGame = document.getElementById('btnExitStartNewGameDirect');
     if (btnExitNewGame) {
-      btnExitNewGame.addEventListener('click', () => this.initGame());
+      btnExitNewGame.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.initGame();
+      });
     }
 
     const btnStartNew = document.getElementById('btnStartNewGame');
     if (btnStartNew) {
-      btnStartNew.addEventListener('click', () => this.initGame());
+      btnStartNew.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.initGame();
+      });
     }
 
     // Mouse Move (Handles both PointerLock and Drag Look!)
@@ -3013,7 +3002,7 @@ class SurvivalGame3D {
 
     // 3. Reset Game State to prepare for fresh session
     this.resetGameState();
-    this.isPaused = true;
+    this.isPaused = false;
     this.isExited = false;
     this.hasStartedGame = false;
 
@@ -3263,8 +3252,8 @@ class SurvivalGame3D {
   animate() {
     const dt = Math.min(0.1, this.clock.getDelta());
 
-    // Freeze world simulation calculations when paused, exited, or prior to game start
-    if (this.isPaused || this.isExited || !this.hasStartedGame) {
+    // Freeze world simulation calculations only when explicitly paused or exited
+    if (this.isPaused || this.isExited) {
       this.renderer.render(this.scene, this.camera);
       requestAnimationFrame(this.animate);
       return;
@@ -3272,14 +3261,16 @@ class SurvivalGame3D {
 
     this.updateDayNightCycle(dt);
 
-    if (this.cameraMode === 'drone') {
-      this.updateDrone(dt);
-    } else {
-      this.updatePlayer(dt);
+    if (this.hasStartedGame) {
+      if (this.cameraMode === 'drone') {
+        this.updateDrone(dt);
+      } else {
+        this.updatePlayer(dt);
+      }
+      this.updateZombies(dt);
+      this.updateHeatDome();
     }
 
-    this.updateZombies(dt);
-    this.updateHeatDome();
     this.updateAtmosphere(dt);
     this.updateHUD();
 
