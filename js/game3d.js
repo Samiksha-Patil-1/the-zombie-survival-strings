@@ -107,6 +107,9 @@ class SurvivalGame3D {
     this.currentInteraction = null;
     this.hasStartedGame = false;
     this.isPaused = false;
+    this.isExited = false;
+    this._exitCountdownInterval = null;
+    this._exitSecondsRemaining = 3;
     this.zombiesKilled = 0;
     this.isGameOver = false;
     this.lastHuntedAlertTime = 0;
@@ -2202,6 +2205,13 @@ class SurvivalGame3D {
       if (e.key === '2') this.switchWeapon('bat');
       if (e.key.toLowerCase() === 'r') this.reloadWeapon();
       if (e.key.toLowerCase() === 'p') this.togglePause();
+
+      // Detect Exit Key (ESC)
+      if (e.key === 'Escape') {
+        if (this.hasStartedGame && !this.isGameOver && !this.isExited) {
+          this.triggerExit('Escape Key Pressed');
+        }
+      }
     });
 
     window.addEventListener('keyup', (e) => {
@@ -2214,10 +2224,7 @@ class SurvivalGame3D {
     targetElement.addEventListener('mousedown', (e) => {
       if (e.button === 0) {
         if (!this.mouse.isLocked && !this.hasStartedGame) {
-          try { targetElement.requestPointerLock(); } catch (err) {}
-          this.hasStartedGame = true;
-          const playOverlay = document.getElementById('clickToPlayOverlay');
-          if (playOverlay) playOverlay.style.display = 'none';
+          this.initGame();
         } else {
           this.attack();
         }
@@ -2231,23 +2238,69 @@ class SurvivalGame3D {
       this.mouse.isDragging = false;
     });
 
+    // Detect Exit on Pointer Lock Change / Leaving Game Screen
     document.addEventListener('pointerlockchange', () => {
       this.mouse.isLocked = (document.pointerLockElement === targetElement);
       const playOverlay = document.getElementById('clickToPlayOverlay');
-      if (playOverlay) {
-        if (this.mouse.isLocked) {
-          playOverlay.style.display = 'none';
-          this.hasStartedGame = true;
-          this.isPaused = false;
-        } else if (this.isPaused) {
-          const btn = document.getElementById('btnStartGamePlay');
-          if (btn) {
-            btn.innerHTML = '<span class="btn-play-icon">▶</span><span>RESUME SURVIVAL (CLICK TO LOCK)</span>';
-          }
-          playOverlay.style.display = 'flex';
+      const exitPopup = document.getElementById('exitGamePopup');
+
+      if (this.mouse.isLocked) {
+        if (playOverlay) playOverlay.style.display = 'none';
+        if (exitPopup) exitPopup.style.display = 'none';
+        this.hasStartedGame = true;
+        this.isPaused = false;
+        this.isExited = false;
+      } else {
+        // Player left active pointer lock / left game screen
+        if (this.hasStartedGame && !this.isGameOver && !this.isExited && !this.isPaused) {
+          this.triggerExit('Player Left Game Screen (Pointer Lock Released)');
         }
       }
     });
+
+    // Step 01: Event Listeners for onExit and Leaving Game Screen
+    window.addEventListener('onExit', (e) => {
+      const reason = (e && e.detail && e.detail.reason) || 'onExit Triggered';
+      this.triggerExit(reason);
+    });
+
+    document.addEventListener('onExit', (e) => {
+      const reason = (e && e.detail && e.detail.reason) || 'onExit Triggered';
+      this.triggerExit(reason);
+    });
+
+    window.addEventListener('blur', () => {
+      if (this.hasStartedGame && !this.isGameOver && !this.isExited) {
+        this.triggerExit('Window Blurred / Lost Focus');
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && this.hasStartedGame && !this.isGameOver && !this.isExited) {
+        this.triggerExit('Tab Inactive / Screen Left');
+      }
+    });
+
+    // Wire HUD Exit and Popup Buttons
+    const btnExitHud = document.getElementById('btnExitGameHud');
+    if (btnExitHud) {
+      btnExitHud.addEventListener('click', () => this.triggerExit('HUD Exit Button Clicked'));
+    }
+
+    const btnExitCont = document.getElementById('btnExitContinue');
+    if (btnExitCont) {
+      btnExitCont.addEventListener('click', () => this.loadMainMenu());
+    }
+
+    const btnExitNewGame = document.getElementById('btnExitStartNewGameDirect');
+    if (btnExitNewGame) {
+      btnExitNewGame.addEventListener('click', () => this.initGame());
+    }
+
+    const btnStartNew = document.getElementById('btnStartNewGame');
+    if (btnStartNew) {
+      btnStartNew.addEventListener('click', () => this.initGame());
+    }
 
     // Mouse Move (Handles both PointerLock and Drag Look!)
     window.addEventListener('mousemove', (e) => {
@@ -2840,6 +2893,7 @@ class SurvivalGame3D {
   }
 
   togglePause() {
+    if (this.isExited) return;
     this.isPaused = !this.isPaused;
     const playOverlay = document.getElementById('clickToPlayOverlay');
     if (playOverlay) {
@@ -2859,22 +2913,173 @@ class SurvivalGame3D {
     }
   }
 
-  replayGame() {
-    // 1. Terminate previous session flags and controllers
-    this.isGameOver = false;
-    this.isPaused = false;
-    this.zombiesKilled = 0;
-    this.keys = {};
-    this.mouse.isDragging = false;
-    this.hasStartedGame = true;
-    this.walkCycle = 0;
-    this.swingAnim = 0;
+  /* ========================================================================
+     10. EXIT EVENT, STATE RESET & LIFECYCLE MANAGEMENT
+     ======================================================================== */
+  triggerExit(reason = 'Player Exit') {
+    if (this.isExited) return;
+    this.isExited = true;
+    this.isPaused = true;
+
+    // Stop active audio loops & timers
     if (this._huntedBannerTimer) {
       clearTimeout(this._huntedBannerTimer);
       this._huntedBannerTimer = null;
     }
+    if (window.horrorAudio) {
+      window.horrorAudio.toggleGeneratorHum(false);
+    }
 
-    // 2. Reset Player Vitals & Loadout
+    // Release pointer lock so cursor is free
+    if (document.exitPointerLock) {
+      try { document.exitPointerLock(); } catch (err) {}
+    }
+    this.mouse.isLocked = false;
+    this.mouse.isDragging = false;
+    this.keys = {};
+
+    // Populate Exit Popup Statistics
+    const dayEl = document.getElementById('exitStatDay');
+    if (dayEl) dayEl.textContent = `DAY ${this.currentDay}`;
+    const killsEl = document.getElementById('exitStatKills');
+    if (killsEl) killsEl.textContent = this.zombiesKilled;
+    const infEl = document.getElementById('exitStatInfection');
+    if (infEl) infEl.textContent = this.playerStats.infection.toFixed(1) + '%';
+
+    // Show Exit Popup Overlay (Freezes screen underneath)
+    const exitPopup = document.getElementById('exitGamePopup');
+    if (exitPopup) exitPopup.style.display = 'flex';
+
+    // Close any other open modals
+    const modal = document.getElementById('gameOverModal');
+    if (modal) modal.style.display = 'none';
+    const playOverlay = document.getElementById('clickToPlayOverlay');
+    if (playOverlay) playOverlay.style.display = 'none';
+    const banner = document.getElementById('huntedWarningBanner');
+    if (banner) banner.style.display = 'none';
+    const dModal = document.getElementById('survivorDialogueModal');
+    if (dModal) dModal.style.display = 'none';
+
+    // Auto-Timer countdown to continue back to Main Menu (3 seconds)
+    this._exitSecondsRemaining = 3;
+    const timerChip = document.getElementById('exitCountdownTimer');
+    if (timerChip) timerChip.textContent = `(${this._exitSecondsRemaining}s)`;
+
+    if (this._exitCountdownInterval) {
+      clearInterval(this._exitCountdownInterval);
+    }
+    this._exitCountdownInterval = setInterval(() => {
+      this._exitSecondsRemaining--;
+      if (timerChip) timerChip.textContent = `(${this._exitSecondsRemaining}s)`;
+      if (this._exitSecondsRemaining <= 0) {
+        clearInterval(this._exitCountdownInterval);
+        this._exitCountdownInterval = null;
+        this.loadMainMenu();
+      }
+    }, 1000);
+
+    // Dispatch onExit custom event
+    const exitDetail = {
+      reason,
+      day: this.currentDay,
+      zombiesKilled: this.zombiesKilled,
+      timestamp: Date.now()
+    };
+    try {
+      window.dispatchEvent(new CustomEvent('onExit', { detail: exitDetail }));
+      document.dispatchEvent(new CustomEvent('onExit', { detail: exitDetail }));
+      if (typeof window.onExit === 'function') {
+        window.onExit(exitDetail);
+      }
+    } catch (e) {
+      console.warn("onExit dispatch error:", e);
+    }
+
+    if (window.showToast) {
+      window.showToast(`🚪 YOU ARE OUT! (${reason})`, "#ff4444");
+    }
+  }
+
+  loadMainMenu() {
+    // 1. Clear any active countdown timers
+    if (this._exitCountdownInterval) {
+      clearInterval(this._exitCountdownInterval);
+      this._exitCountdownInterval = null;
+    }
+
+    // 2. Hide Exit Popup
+    const exitPopup = document.getElementById('exitGamePopup');
+    if (exitPopup) exitPopup.style.display = 'none';
+
+    // 3. Reset Game State to prepare for fresh session
+    this.resetGameState();
+    this.isPaused = true;
+    this.isExited = false;
+    this.hasStartedGame = false;
+
+    // 4. Release pointer lock
+    if (document.exitPointerLock) {
+      try { document.exitPointerLock(); } catch (err) {}
+    }
+    this.mouse.isLocked = false;
+    this.mouse.isDragging = false;
+
+    // 5. Ensure Tab 1 is active view
+    const tab1Btn = document.querySelector('[data-tab="game3DTab"]');
+    if (tab1Btn && !tab1Btn.classList.contains('active')) {
+      tab1Btn.click();
+    }
+
+    // 6. Display Opening Screen (Main Menu)
+    const playOverlay = document.getElementById('clickToPlayOverlay');
+    if (playOverlay) {
+      playOverlay.style.display = 'flex';
+      playOverlay.classList.remove('faded-out');
+
+      // 7. Verify and unblock all main menu buttons so they are 100% clickable
+      const buttons = playOverlay.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.disabled = false;
+        btn.style.pointerEvents = 'auto';
+        btn.style.opacity = '1';
+      });
+    }
+
+    // 8. Close any remaining modals
+    const goModal = document.getElementById('gameOverModal');
+    if (goModal) goModal.style.display = 'none';
+    const dlgModal = document.getElementById('survivorDialogueModal');
+    if (dlgModal) dlgModal.style.display = 'none';
+
+    if (window.showToast) {
+      window.showToast("🏠 RETURNED TO MAIN SCREEN • READY FOR NEW SESSION", "#00f5d4");
+    }
+  }
+
+  resetGameState() {
+    // Clear loops and timers
+    if (this._huntedBannerTimer) {
+      clearTimeout(this._huntedBannerTimer);
+      this._huntedBannerTimer = null;
+    }
+    if (this._exitCountdownInterval) {
+      clearInterval(this._exitCountdownInterval);
+      this._exitCountdownInterval = null;
+    }
+
+    // Reset score and level
+    this.zombiesKilled = 0;
+    this.currentDay = 1;
+    this.gameTime = 10.0;
+    this.isGameOver = false;
+    this.keys = {};
+    this.mouse.isDragging = false;
+    this.walkCycle = 0;
+    this.swingAnim = 0;
+    this.yaw = 0;
+    this.pitch = 0;
+
+    // Reset player stats
     this.playerStats.health = 100;
     this.playerStats.maxHealth = 100;
     this.playerStats.stamina = 100;
@@ -2890,13 +3095,13 @@ class SurvivalGame3D {
     this.playerStats.noiseLevel = 0;
     this.playerStats.dominantArchetype = 'Hunter';
 
-    // 3. Reset Weapon to Suppressed Pistol and Camera to Ground View
+    // Reset weapon to pistol & camera to ground FPS
     this.switchWeapon('pistol');
     this.cameraMode = 'fps';
     this.camera.fov = 65;
     this.camera.updateProjectionMatrix();
 
-    // Sync Toolbar button active states
+    // Reset Toolbar Button UI states
     const droneBtn = document.getElementById('btnToggleDrone');
     if (droneBtn) droneBtn.classList.remove('active');
     const pistolBtn = document.getElementById('btnEquipPistol');
@@ -2904,15 +3109,11 @@ class SurvivalGame3D {
     const batBtn = document.getElementById('btnEquipBat');
     if (batBtn) batBtn.classList.remove('active');
 
-    // 4. Reset Temporal Clock to Day 1, 10:00 AM (Daylight)
-    this.currentDay = 1;
-    this.gameTime = 10.0;
-    this.yaw = 0;
-    this.pitch = 0;
-
-    // 5. Teleport Alexia to Safehouse Entrance
-    this.playerGroup.position.set(-25, 0, -10);
-    this.playerGroup.rotation.y = 0;
+    // Teleport Alexia to Safehouse Entrance
+    if (this.playerGroup) {
+      this.playerGroup.position.set(-25, 0, -10);
+      this.playerGroup.rotation.y = 0;
+    }
     if (this.playerLegL && this.playerLegR) {
       this.playerLegL.rotation.x = 0;
       this.playerLegR.rotation.x = 0;
@@ -2921,36 +3122,58 @@ class SurvivalGame3D {
     if (this.playerArmR) this.playerArmR.rotation.x = 0;
     if (this.playerTorsoGroup) this.playerTorsoGroup.position.y = 1.15;
 
-    // 6. Purge ALL Existing Zombies & Spawn Fresh Horde
+    // Free resources & purge existing zombies and blood decals
     for (let z of this.zombies) {
       if (z.mesh) this.scene.remove(z.mesh);
     }
     this.zombies = [];
     this.initZombies();
 
-    // 7. Reset Supply Crates & Dialogue states
+    // Reset Supply Crates & Dialogue states
     this.resetSupplyCrates();
     for (let s of this.survivors) {
       s.idx = 0;
     }
 
-    // 8. Reset Base Heat & Generator
+    // Reset Base Heat & Generator
     this.baseHeat.generatorActive = true;
     this.updateHeatDome();
 
-    // 9. Reset Infection Sensory Post-Processing & Audio
+    // Reset Infection Sensory Post-Processing & Audio
     if (window.setGlobalInfection) window.setGlobalInfection(0);
     if (window.horrorAudio) {
       window.horrorAudio.setInfectionCutoff(0);
-      window.horrorAudio.toggleGeneratorHum(true);
     }
 
-    // 10. Close all modals, dialogue popups, and alerts
+    // Reset Narrative DAG Graph
+    const resetGraphBtn = document.getElementById('btnResetGraph');
+    if (resetGraphBtn) resetGraphBtn.click();
+
+    // Update HUD
+    this.updateHUD();
+    const dayEl = document.getElementById('hudDayTime');
+    if (dayEl) dayEl.textContent = 'DAY 1 | 10:00';
+    const flash = document.getElementById('damageFlashOverlay');
+    if (flash) flash.style.opacity = '0';
+  }
+
+  initGame() {
+    // 1. Reset state completely
+    this.resetGameState();
+    this.isGameOver = false;
+    this.isPaused = false;
+    this.isExited = false;
+    this.hasStartedGame = true;
+
+    // 2. Hide all overlays and popups
+    const playOverlay = document.getElementById('clickToPlayOverlay');
+    if (playOverlay) playOverlay.style.display = 'none';
+
+    const exitPopup = document.getElementById('exitGamePopup');
+    if (exitPopup) exitPopup.style.display = 'none';
+
     const modal = document.getElementById('gameOverModal');
     if (modal) modal.style.display = 'none';
-
-    const pOverlay = document.getElementById('clickToPlayOverlay');
-    if (pOverlay) pOverlay.style.display = 'none';
 
     const banner = document.getElementById('huntedWarningBanner');
     if (banner) banner.style.display = 'none';
@@ -2958,26 +3181,29 @@ class SurvivalGame3D {
     const dModal = document.getElementById('survivorDialogueModal');
     if (dModal) dModal.style.display = 'none';
 
-    const dmgFlash = document.getElementById('damageFlashOverlay');
-    if (dmgFlash) dmgFlash.style.opacity = '0';
+    // 3. Initialize Audio
+    if (window.horrorAudio) {
+      window.horrorAudio.init();
+      window.horrorAudio.toggleGeneratorHum(true);
+    }
 
-    // 11. Reset Narrative DAG Graph
-    const resetGraphBtn = document.getElementById('btnResetGraph');
-    if (resetGraphBtn) resetGraphBtn.click();
-
-    // 12. Instant HUD update
-    this.updateHUD();
-    const dayEl = document.getElementById('hudDayTime');
-    if (dayEl) dayEl.textContent = 'DAY 1 | 10:00';
-
-    // 13. Auto lock pointer
+    // 4. Request Pointer Lock
     if (this.renderer && this.renderer.domElement) {
-      try { this.renderer.domElement.requestPointerLock(); } catch (e) {}
+      try {
+        this.renderer.domElement.requestPointerLock();
+      } catch (err) {
+        console.warn("Pointer lock error on initGame:", err);
+      }
     }
 
+    // 5. Toast
     if (window.showToast) {
-      window.showToast("↺ SESSION RESTARTED • PREVIOUS RUN TERMINATED • DAY 1 BEGUN!", "#00f5d4");
+      window.showToast("🎮 NEW GAME INITIALIZED • WELCOME TO DISTRICT 4!", "#00f5d4");
     }
+  }
+
+  replayGame() {
+    this.initGame();
   }
 
   updateAtmosphere(dt) {
@@ -3037,6 +3263,13 @@ class SurvivalGame3D {
   animate() {
     const dt = Math.min(0.1, this.clock.getDelta());
 
+    // Freeze world simulation calculations when paused, exited, or prior to game start
+    if (this.isPaused || this.isExited || !this.hasStartedGame) {
+      this.renderer.render(this.scene, this.camera);
+      requestAnimationFrame(this.animate);
+      return;
+    }
+
     this.updateDayNightCycle(dt);
 
     if (this.cameraMode === 'drone') {
@@ -3055,4 +3288,21 @@ class SurvivalGame3D {
   }
 }
 
+// Global API hooks for direct session control and events
 window.SurvivalGame3D = SurvivalGame3D;
+
+window.initGame = function() {
+  if (window.game3D) return window.game3D.initGame();
+};
+
+window.loadMainMenu = function() {
+  if (window.game3D) return window.game3D.loadMainMenu();
+};
+
+window.resetGameState = function() {
+  if (window.game3D) return window.game3D.resetGameState();
+};
+
+window.triggerExit = function(reason = 'Manual Exit') {
+  if (window.game3D) return window.game3D.triggerExit(reason);
+};

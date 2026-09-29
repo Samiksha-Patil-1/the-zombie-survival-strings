@@ -44,17 +44,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 2. Tab Navigation
+  // 2. Tab Navigation with Exit Event Detection
   const tabs = document.querySelectorAll('.nav-tab');
   const panels = document.querySelectorAll('.view-panel');
 
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
+      const targetId = tab.getAttribute('data-tab');
+
+      // If switching away from 3D Survival World while an active game is running, detect exit!
+      if (targetId !== 'game3DTab' && window.game3D && window.game3D.hasStartedGame && !window.game3D.isGameOver && !window.game3D.isExited) {
+        if (window.triggerExit) {
+          window.triggerExit('Player Left Game Screen (Tab Switch)');
+        }
+      }
+
       tabs.forEach(t => t.classList.remove('active'));
       panels.forEach(p => p.classList.remove('active'));
 
       tab.classList.add('active');
-      const targetId = tab.getAttribute('data-tab');
       const targetPanel = document.getElementById(targetId);
       if (targetPanel) targetPanel.classList.add('active');
 
@@ -94,25 +102,60 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Hook Start Game & Drone Buttons in Overlay
+  // Hook Start New Game & Enter Survival Buttons
+  const btnStartNew = document.getElementById('btnStartNewGame');
+  if (btnStartNew) {
+    btnStartNew.addEventListener('click', () => {
+      if (window.initGame) {
+        window.initGame();
+      } else if (window.game3D) {
+        window.game3D.initGame();
+      }
+    });
+  }
+
   const btnStartPlay = document.getElementById('btnStartGamePlay');
   if (btnStartPlay) {
     btnStartPlay.addEventListener('click', () => {
-      if (window.horrorAudio) window.horrorAudio.init();
-      const playOverlay = document.getElementById('clickToPlayOverlay');
-      if (playOverlay) playOverlay.style.display = 'none';
-
-      if (window.game3D) {
-        window.game3D.hasStartedGame = true;
-        if (window.game3D.renderer && window.game3D.renderer.domElement) {
-          try {
-            window.game3D.renderer.domElement.requestPointerLock();
-          } catch (e) {
-            console.warn("Pointer lock request:", e);
-          }
-        }
+      if (window.initGame) {
+        window.initGame();
+      } else if (window.game3D) {
+        window.game3D.initGame();
       }
-      window.showToast("🎮 SURVIVAL ZONE ENGAGED! Move with WASD, Click/Drag to look around.", "#00f5d4");
+    });
+  }
+
+  // Hook Exit HUD and Exit Popup Buttons
+  const btnExitHud = document.getElementById('btnExitGameHud');
+  if (btnExitHud) {
+    btnExitHud.addEventListener('click', () => {
+      if (window.triggerExit) {
+        window.triggerExit('HUD Exit Button Clicked');
+      } else if (window.game3D) {
+        window.game3D.triggerExit('HUD Exit Button Clicked');
+      }
+    });
+  }
+
+  const btnExitCont = document.getElementById('btnExitContinue');
+  if (btnExitCont) {
+    btnExitCont.addEventListener('click', () => {
+      if (window.loadMainMenu) {
+        window.loadMainMenu();
+      } else if (window.game3D) {
+        window.game3D.loadMainMenu();
+      }
+    });
+  }
+
+  const btnExitDirect = document.getElementById('btnExitStartNewGameDirect');
+  if (btnExitDirect) {
+    btnExitDirect.addEventListener('click', () => {
+      if (window.initGame) {
+        window.initGame();
+      } else if (window.game3D) {
+        window.game3D.initGame();
+      }
     });
   }
 

@@ -250,12 +250,18 @@ def build_pdf(filename="ZOMBIE_STRING_OF_SURVIVAL_MASTER_PROMPT.pdf"):
             "WEB AUDIO API SYNTHESIZER (audio.js):",
             "Zero external audio files: 58Hz sawtooth generator rumble, heartbeat pulses (65Hz->35Hz sine ramps), gunshot noise bursts (exponential 1200Hz->80Hz lowpass filter), zombie growls (sawtooth sweep), fleshy impacts, and master lowpass filter cutoff.",
             "HUD & MULTI-TAB INTERFACE:",
-            "Tab 01: 3D Survival World with top compass bar (0 deg | N), action toolbar (Drone, 1st/3rd View, Pistol, Bat, Restart), crosshair, Hunted warning banner, damage flash vignette, and game over replay modal.",
+            "Tab 01: 3D Survival World with top compass bar (0 deg | N), action toolbar (Drone, 1st/3rd View, Pistol, Bat, Restart, Exit Game [ESC]), crosshair, Hunted warning banner, damage flash vignette, game over modal, and 'You are out!' Exit Popup.",
             "Tab 02: DAG Decision Tree interactive canvas graph tracking committed nodes and branches.",
             "Tab 03: Adaptive AI Director Radar visualizing Stealth, Combat, and Velocity metrics.",
             "Tab 04: Thermal Heat Dissipation 2D Radar Canvas.",
             "Tab 05: Sensory Infection Bio-Vein Distortion Canvas with FOV indicator.",
             "Tab 06: Tactical 2D Top-Down Arena Simulator with flashlight cone.",
+            "SESSION EXIT & LIFECYCLE MANAGEMENT (onExit, Reset & MainMenu):",
+            "1. Detect Exit Event: Listen for 'onExit' custom event, window blur, visibilitychange (leaving screen), pointerlock release, and ESC key / Exit HUD button.",
+            "2. Show Exit Popup: Display 'You are out!' modal overlay with frosted glass blur over the frozen screen, current run statistics, and a 3-second auto-timer countdown with a manual continue button.",
+            "3. Reset Game State: resetGameState() purges all corpses, resets score (0 kills), level (Day 1), vitals (100 HP, 100 Stamina, 0% Infection, 24 Ammo), stops timers and audio hums, and frees WebGL resources.",
+            "4. Return to Main Screen: loadMainMenu() closes the popup, unblocks all buttons, and returns to the opening screen.",
+            "5. Start New Game: initGame() launches a fresh session seamlessly with pointer lock and audio initialized.",
             "Server: Node.js server.js serving static files on port 3000, and vercel.json for direct deployment."
         ],
         prompt_box_style, prompt_head_style
@@ -307,6 +313,7 @@ def build_pdf(filename="ZOMBIE_STRING_OF_SURVIVAL_MASTER_PROMPT.pdf"):
         ["Alexia Player 3D Rig", "100% Implemented", "White belted tunic, ring buckle, long chestnut hair, skinny jeans, espadrilles, TPS weapons"],
         ["Deciduous City Trees", "100% Implemented", "Bifurcated trunk, grooved bark, 16 foliage clusters, drooping branch, wind sway"],
         ["3-Story Brick Townhouses", "100% Implemented", "Concrete plinth, stone storefront, arched windows, side stoop, parapet, chimney, HVAC"],
+        ["Exit Detection & Main Menu", "100% Implemented", "onExit event, 'You are out!' popup, frozen screen, state reset, loadMainMenu(), initGame()"],
         ["NPC Survivors (3 Roles)", "100% Implemented", "Dr. Reed, Marcus, Sgt. Cole models with idle breathing, head tracking, quests"],
         ["Horror Zombies (4 Types)", "100% Implemented", "Rotting flesh, exposed ribs, snarling teeth, bare foot, claw attacks, blood decals"],
         ["FPS / TPS / Drone Camera", "100% Implemented", "1st person, 3rd person with weapon pitch aim, 80m reconnaissance drone"],
@@ -339,7 +346,7 @@ def build_pdf(filename="ZOMBIE_STRING_OF_SURVIVAL_MASTER_PROMPT.pdf"):
     story.append(Spacer(1, 14))
 
     # Verification checklist
-    story.append(Paragraph("SECTION 4: 12-POINT AI GENERATION VERIFICATION CHECKLIST", h1_style))
+    story.append(Paragraph("SECTION 4: 13-POINT AI GENERATION VERIFICATION CHECKLIST", h1_style))
     checklist_items = [
         "1. Does the 3D player character render Alexia with white belted tunic, silver ring buckle, long flowing chestnut hair, dark indigo skinny jeans, and cream espadrille flats?",
         "2. Does pressing 'V' cleanly toggle between First-Person and Third-Person view without camera head clipping?",
@@ -352,7 +359,8 @@ def build_pdf(filename="ZOMBIE_STRING_OF_SURVIVAL_MASTER_PROMPT.pdf"):
         "9. Does the Web Audio API synthesizer generate gunfire, heartbeat, generator rumble, and lowpass infection muffling?",
         "10. Does clicking 'RESTART GAME' on the HUD or game-over screen purge all corpses and cleanly restart Day 1?",
         "11. Do the city trees feature a bifurcated forked trunk, grooved bark texture, weeping right branch, and wind-swayed foliage?",
-        "12. Do the urban buildings render as 3-story red brick townhouses with concrete plinths, stone storefront bays with pilasters and cornice, front arched windows, side stoop stairs, roof parapets with coping, brick chimneys, and rooftop HVAC units?"
+        "12. Do the urban buildings render as 3-story red brick townhouses with concrete plinths, stone storefront bays with pilasters and cornice, front arched windows, side stoop stairs, roof parapets with coping, brick chimneys, and rooftop HVAC units?",
+        "13. Does leaving the game screen, pressing ESC, or clicking EXIT GAME trigger an onExit event, display the 'You are out!' popup over a frozen screen, countdown to return to MainMenu, and allow starting a fresh session via 'Start New Game'?"
     ]
     for item in checklist_items:
         story.append(Paragraph(item, bullet_style))

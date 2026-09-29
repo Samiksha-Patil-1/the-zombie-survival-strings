@@ -107,6 +107,7 @@
             <button id="btnEquipPistol" class="action-pill-btn active"><span class="pill-icon">🔫</span> PISTOL [1]</button>
             <button id="btnEquipBat" class="action-pill-btn"><span class="pill-icon">🏏</span> BARBED BAT [2]</button>
             <button id="btnRestartGameHud" class="action-pill-btn btn-restart-hud"><span class="pill-icon">↺</span> RESTART GAME</button>
+            <button id="btnExitGameHud" class="action-pill-btn btn-exit-hud"><span class="pill-icon">🚪</span> EXIT GAME [ESC]</button>
           </div>
 
           <!-- Center Crosshair & Hit Marker -->
@@ -128,6 +129,45 @@
 
           <!-- Red Damage Screen Flash Vignette -->
           <div id="damageFlashOverlay" class="damage-flash-overlay"></div>
+
+          <!-- Exit Game Popup Component (Overlays Frozen Screen) -->
+          <div id="exitGamePopup" class="exit-popup-overlay" style="display: none;">
+            <div class="exit-popup-card">
+              <div class="exit-badge">SESSION SUSPENDED • EXIT DETECTED</div>
+              <h1 class="exit-title">You are out!</h1>
+              <p class="exit-desc">You have exited the active survival session. Game simulation has been halted and all player stats, loops, and resources are preserved for reset.</p>
+              
+              <div class="exit-stats-preview">
+                <div class="exit-stat-box">
+                  <span class="exit-stat-lbl">CURRENT LEVEL</span>
+                  <span class="exit-stat-val" id="exitStatDay">DAY 1</span>
+                </div>
+                <div class="exit-stat-box">
+                  <span class="exit-stat-lbl">ZOMBIES KILLED</span>
+                  <span class="exit-stat-val highlight" id="exitStatKills">0</span>
+                </div>
+                <div class="exit-stat-box">
+                  <span class="exit-stat-lbl">INFECTION</span>
+                  <span class="exit-stat-val infection" id="exitStatInfection">0.0%</span>
+                </div>
+                <div class="exit-stat-box">
+                  <span class="exit-stat-lbl">SIMULATION</span>
+                  <span class="exit-stat-val" style="color: var(--accent-amber);">FROZEN</span>
+                </div>
+              </div>
+
+              <div class="exit-actions">
+                <button id="btnExitContinue" class="exit-btn-primary">
+                  <span>RETURN TO MAIN SCREEN</span>
+                  <span id="exitCountdownTimer" class="exit-timer-chip">(3s)</span>
+                </button>
+                <button id="btnExitStartNewGameDirect" class="exit-btn-secondary">
+                  <span>↺</span>
+                  <span>START NEW GAME NOW</span>
+                </button>
+              </div>
+            </div>
+          </div>
 
           <!-- Game Over / Victory / Replay Modal -->
           <div id="gameOverModal" class="game-over-overlay" style="display: none;">
@@ -172,10 +212,10 @@
             </div>
           </div>
 
-          <!-- Click To Play / Enter Survival Mode Overlay -->
+          <!-- Click To Play / Enter Survival Mode Overlay (Main Menu / Opening Screen) -->
           <div id="clickToPlayOverlay" class="click-to-play-overlay">
             <div class="overlay-modal">
-              <div class="overlay-badge">AAA 3D/4D/5D REAL-TIME ENGINE</div>
+              <div class="overlay-badge">MAIN MENU • AAA 3D/4D/5D REAL-TIME ENGINE</div>
               <h1 class="overlay-title">ZOMBIE: STRING OF SURVIVAL</h1>
               <p class="overlay-desc" style="font-size: 13.5px; line-height: 1.55; color: var(--text-main); margin-bottom: 14px;">
                 <b>You are Alexia</b>, trapped in a zombie-infested District 4, and you have 7 days to explore the city, collect resources, rescue survivors, manage your increasingly detectable base, adapt to enemies that respond to your playstyle, uncover the infection mystery, and finally escape from the harbor.
@@ -188,9 +228,15 @@
                 <span class="preview-badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #6ee7b7; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-family: var(--font-tech);">🛡️ Sgt. Cole (Soldier)</span>
                 <span class="preview-badge" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-family: var(--font-tech);">🧟 Mutated Horror Horde</span>
               </div>
-                <button id="btnStartGamePlay" class="play-primary-btn">
+
+              <div class="overlay-btn-group">
+                <button id="btnStartNewGame" class="play-primary-btn btn-start-new-game">
                   <span class="btn-play-icon">▶</span>
-                  <span>ENTER SURVIVAL ZONE (START GAME)</span>
+                  <span>START NEW GAME</span>
+                </button>
+                <button id="btnStartGamePlay" class="play-drone-btn">
+                  <span>🎮</span>
+                  <span>ENTER SURVIVAL ZONE</span>
                 </button>
                 <button id="btnQuickDroneStart" class="play-drone-btn">
                   <span>🛸</span>

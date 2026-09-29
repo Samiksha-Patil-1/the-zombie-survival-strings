@@ -425,6 +425,19 @@ body.dark-theme {
   box-shadow: 0 0 14px var(--accent-crimson-glow);
 }
 
+.btn-exit-hud {
+  background: rgba(239, 68, 68, 0.16) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #fca5a5 !important;
+}
+
+.btn-exit-hud:hover {
+  background: var(--accent-crimson) !important;
+  border-color: var(--accent-crimson) !important;
+  color: #fff !important;
+  box-shadow: 0 0 16px var(--accent-crimson-glow);
+}
+
 /* Center Crosshair */
 .crosshair-center {
   position: absolute;
@@ -654,6 +667,188 @@ body.dark-theme {
 .replay-primary-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 45px rgba(230, 57, 70, 0.9);
+}
+
+/* Exit Game Popup Component (Overlays Frozen Screen) */
+.exit-popup-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 7, 12, 0.90);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 100;
+  animation: fadeIn 0.25s ease forwards;
+}
+
+.exit-popup-card {
+  background: linear-gradient(135deg, rgba(26, 12, 18, 0.98), rgba(12, 16, 26, 0.98));
+  border: 2px solid var(--accent-crimson);
+  box-shadow: 0 0 50px rgba(230, 57, 70, 0.45), 0 20px 60px rgba(0, 0, 0, 0.95);
+  border-radius: var(--radius-lg);
+  padding: 32px 36px;
+  max-width: 540px;
+  width: 90%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.exit-badge {
+  font-family: var(--font-tech);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--accent-crimson);
+  background: rgba(230, 57, 70, 0.16);
+  border: 1px solid rgba(230, 57, 70, 0.4);
+  padding: 4px 14px;
+  border-radius: 20px;
+}
+
+.exit-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #fff;
+  text-shadow: 0 0 25px rgba(230, 57, 70, 0.8);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.exit-desc {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.exit-stats-preview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.exit-stat-box {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 6px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+}
+
+.exit-stat-lbl {
+  font-family: var(--font-tech);
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.exit-stat-val {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.exit-stat-val.highlight {
+  color: var(--accent-amber);
+}
+
+.exit-stat-val.infection {
+  color: var(--accent-crimson);
+}
+
+.exit-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.exit-btn-primary {
+  background: linear-gradient(90deg, #e63946, #dc2626);
+  color: #fff;
+  border: none;
+  padding: 14px 20px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-tech);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 0 25px rgba(230, 57, 70, 0.5);
+  transition: all 0.2s ease;
+}
+
+.exit-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 35px rgba(230, 57, 70, 0.85);
+  background: linear-gradient(90deg, #f43f5e, #e11d48);
+}
+
+.exit-timer-chip {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  color: #fef08a;
+}
+
+.exit-btn-secondary {
+  background: rgba(255, 158, 0, 0.12);
+  border: 1px solid var(--accent-amber);
+  color: var(--accent-amber);
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-tech);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.exit-btn-secondary:hover {
+  background: var(--accent-amber);
+  color: #000;
+  box-shadow: 0 0 20px var(--accent-amber-glow);
+}
+
+.btn-start-new-game {
+  background: linear-gradient(90deg, #10b981, #059669) !important;
+  color: #fff !important;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.5) !important;
+}
+
+.btn-start-new-game:hover {
+  background: linear-gradient(90deg, #34d399, #10b981) !important;
+  box-shadow: 0 0 35px rgba(16, 185, 129, 0.8) !important;
 }
 
 /* Click-To-Play / Start Simulation Overlay */
