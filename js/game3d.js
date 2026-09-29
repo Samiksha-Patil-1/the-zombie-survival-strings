@@ -2280,12 +2280,30 @@ class SurvivalGame3D {
       };
     }
 
+    const exitPopupOverlay = document.getElementById('exitGamePopup');
+    if (exitPopupOverlay) {
+      exitPopupOverlay.onclick = (e) => {
+        if (this.isExited) {
+          this.loadMainMenu();
+        }
+      };
+    }
+
     const btnStartNew = document.getElementById('btnStartNewGame');
     if (btnStartNew) {
       btnStartNew.onclick = (e) => {
         e.stopPropagation();
         e.preventDefault();
         this.initGame();
+      };
+    }
+
+    const playOverlayEl = document.getElementById('clickToPlayOverlay');
+    if (playOverlayEl) {
+      playOverlayEl.onclick = (e) => {
+        if (!this.hasStartedGame) {
+          this.initGame();
+        }
       };
     }
 
@@ -2799,21 +2817,21 @@ class SurvivalGame3D {
       }
 
       // Close combat contact: Zombie actively strikes player
-      if (distP < 2.0) {
-        this.playerStats.health = Math.max(0, this.playerStats.health - dt * 25);
-        this.playerStats.infection = Math.min(100, this.playerStats.infection + dt * 12);
+      if (distP < 2.2) {
+        this.playerStats.health = Math.max(0, this.playerStats.health - dt * 50);
+        this.playerStats.infection = Math.min(100, this.playerStats.infection + dt * 45);
         if (window.setGlobalInfection) window.setGlobalInfection(this.playerStats.infection);
 
         this.triggerDamageFlash();
-        if (window.horrorAudio && Math.random() < 0.12) {
+        if (window.horrorAudio && Math.random() < 0.25) {
           window.horrorAudio.playPlayerDamage();
         }
 
         // Check Death Condition: Player Hunted & Overwhelmed
         if (this.playerStats.health <= 0 || this.playerStats.infection >= 100) {
           const reason = this.playerStats.infection >= 100
-            ? "Zombie infection consumed your body!"
-            : `A ${z.type || 'Mutant'} zombie attacked and infected you!`;
+            ? "Zombie infection consumed Alexia!"
+            : `A ${z.type || 'Mutant'} zombie attacked and infected Alexia!`;
           this.triggerExit(reason);
           return;
         }
@@ -2835,7 +2853,7 @@ class SurvivalGame3D {
     if (this.isGameOver) return;
     const reason = isVictory
       ? "Survival mission accomplished!"
-      : `Hunted down and killed by ${killerType ? killerType + ' Zombie' : 'a zombie'}!`;
+      : `A ${killerType ? killerType + ' ' : ''}zombie attacked and infected Alexia!`;
     this.triggerExit(reason);
   }
 
@@ -2899,11 +2917,19 @@ class SurvivalGame3D {
 
     // Show Exit Popup Overlay (Freezes screen underneath)
     const exitPopup = document.getElementById('exitGamePopup');
-    if (exitPopup) exitPopup.style.display = 'flex';
+    if (exitPopup) {
+      exitPopup.classList.add('active');
+      exitPopup.style.display = 'flex';
+      exitPopup.style.pointerEvents = 'auto';
+    }
 
     // Hide Main Menu if open
     const playOverlay = document.getElementById('clickToPlayOverlay');
-    if (playOverlay) playOverlay.style.display = 'none';
+    if (playOverlay) {
+      playOverlay.classList.add('hidden');
+      playOverlay.style.display = 'none';
+      playOverlay.style.pointerEvents = 'none';
+    }
 
     // Auto-Timer countdown to continue back to Main Menu (3 seconds)
     this._exitSecondsRemaining = 3;
@@ -2954,7 +2980,11 @@ class SurvivalGame3D {
 
     // 2. Hide Exit Popup
     const exitPopup = document.getElementById('exitGamePopup');
-    if (exitPopup) exitPopup.style.display = 'none';
+    if (exitPopup) {
+      exitPopup.classList.remove('active');
+      exitPopup.style.display = 'none';
+      exitPopup.style.pointerEvents = 'none';
+    }
 
     // 3. Reset Game State to prepare for fresh session
     this.resetGameState();
@@ -2973,7 +3003,9 @@ class SurvivalGame3D {
     // 5. Display Opening Screen (Main Menu)
     const playOverlay = document.getElementById('clickToPlayOverlay');
     if (playOverlay) {
+      playOverlay.classList.remove('hidden');
       playOverlay.style.display = 'flex';
+      playOverlay.style.pointerEvents = 'auto';
       playOverlay.classList.remove('faded-out');
 
       // Unblock and enable Start New Game button
@@ -3103,12 +3135,20 @@ class SurvivalGame3D {
     this.isExited = false;
     this.hasStartedGame = true;
 
-    // 2. Hide all overlays and popups
+    // 2. Hide all overlays and popups cleanly
     const playOverlay = document.getElementById('clickToPlayOverlay');
-    if (playOverlay) playOverlay.style.display = 'none';
+    if (playOverlay) {
+      playOverlay.classList.add('hidden');
+      playOverlay.style.display = 'none';
+      playOverlay.style.pointerEvents = 'none';
+    }
 
     const exitPopup = document.getElementById('exitGamePopup');
-    if (exitPopup) exitPopup.style.display = 'none';
+    if (exitPopup) {
+      exitPopup.classList.remove('active');
+      exitPopup.style.display = 'none';
+      exitPopup.style.pointerEvents = 'none';
+    }
 
     const modal = document.getElementById('gameOverModal');
     if (modal) modal.style.display = 'none';

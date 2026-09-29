@@ -176,12 +176,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Hook Restart & Replay Buttons across all HUD & Modals
   const triggerGameRestart = () => {
     const playOverlay = document.getElementById('clickToPlayOverlay');
-    if (playOverlay) playOverlay.style.display = 'none';
+    if (playOverlay) {
+      playOverlay.classList.add('hidden');
+      playOverlay.style.display = 'none';
+    }
+    const exitPopup = document.getElementById('exitGamePopup');
+    if (exitPopup) {
+      exitPopup.classList.remove('active');
+      exitPopup.style.display = 'none';
+    }
     const gModal = document.getElementById('gameOverModal');
     if (gModal) gModal.style.display = 'none';
 
     if (window.game3D) {
-      window.game3D.replayGame();
+      window.game3D.initGame();
     }
   };
 

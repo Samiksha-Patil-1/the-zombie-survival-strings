@@ -681,15 +681,19 @@ html, body.dark-theme {
    EXIT GAME / YOU ARE OUT POPUP OVERLAY
    ========================================================================== */
 .exit-popup-overlay {
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: 2000 !important;
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 7, 14, 0.90);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.exit-popup-overlay.active {
   display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: rgba(4, 7, 14, 0.90) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
   animation: fadeIn 0.25s ease forwards;
 }
 
@@ -829,16 +833,24 @@ html, body.dark-theme {
    MAIN MENU OVERLAY (OPENING SCREEN)
    ========================================================================== */
 .click-to-play-overlay {
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: 1000 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: rgba(4, 7, 14, 0.82) !important;
-  backdrop-filter: blur(14px) !important;
-  -webkit-backdrop-filter: blur(14px) !important;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 7, 14, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   cursor: default;
+  transition: opacity 0.2s ease;
+}
+
+.click-to-play-overlay.hidden {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
 
 .main-menu-card {
@@ -931,7 +943,6 @@ html, body.dark-theme {
   color: var(--text-dim);
   margin-top: 6px;
   flex-wrap: wrap;
-}
 }
 
 .overlay-note {
