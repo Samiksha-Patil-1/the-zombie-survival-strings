@@ -22,12 +22,18 @@ window.showToast = function(message, color = '#ff9e00') {
   }, 3500);
 };
 
-// Global infection hook
+// Global infection hook (safe and robust)
 window.setGlobalInfection = function(pct) {
-  const el = document.getElementById('sliderInfectionLevel');
-  if (el) {
-    el.value = pct;
-    updateInfectionVisuals(pct);
+  try {
+    const el = document.getElementById('sliderInfectionLevel');
+    if (el) el.value = pct;
+    const overlay = document.getElementById('infectionOverlay');
+    if (overlay) overlay.style.opacity = (Math.min(100, Math.max(0, pct)) / 100 * 0.85).toString();
+    if (typeof window.updateInfectionVisuals === 'function') {
+      window.updateInfectionVisuals(pct);
+    }
+  } catch (err) {
+    console.warn("setGlobalInfection non-critical notice:", err);
   }
 };
 
@@ -712,39 +718,49 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================================================
   const sliderInf = document.getElementById('sliderInfectionLevel');
   const veinCanvas = document.getElementById('bioVeinCanvas');
-  const veinCtx = veinCanvas.getContext('2d');
+  const veinCtx = veinCanvas ? veinCanvas.getContext('2d') : null;
 
   function updateInfectionVisuals(pct) {
-    const norm = pct / 100;
+    const norm = Math.max(0, Math.min(100, pct)) / 100;
 
-    // Update readouts
-    document.getElementById('infectionValText').textContent = pct.toFixed(1) + '%';
-    document.getElementById('lblAberration').textContent = (norm * 100).toFixed(0) + '%';
-    document.getElementById('lblVeins').textContent = (norm * 100).toFixed(0) + '%';
+    // Update readouts safely
+    const valText = document.getElementById('infectionValText');
+    if (valText) valText.textContent = pct.toFixed(1) + '%';
+    const lblAb = document.getElementById('lblAberration');
+    if (lblAb) lblAb.textContent = (norm * 100).toFixed(0) + '%';
+    const lblV = document.getElementById('lblVeins');
+    if (lblV) lblV.textContent = (norm * 100).toFixed(0) + '%';
 
     const hz = Math.round(22000 * Math.pow(1 - norm, 1.8) + 500);
-    document.getElementById('lblAudioLPF').textContent = `${hz} Hz (${norm > 0.3 ? 'Muffled' : 'Crisp'})`;
+    const lblLpf = document.getElementById('lblAudioLPF');
+    if (lblLpf) lblLpf.textContent = `${hz} Hz (${norm > 0.3 ? 'Muffled' : 'Crisp'})`;
 
     const whispersActive = pct >= 50;
     const lblW = document.getElementById('lblWhispers');
-    lblW.textContent = whispersActive ? 'ACTIVE (HALLUCINATING)' : 'INACTIVE (<50%)';
-    lblW.style.color = whispersActive ? '#e63946' : '#64748b';
+    if (lblW) {
+      lblW.textContent = whispersActive ? 'ACTIVE (HALLUCINATING)' : 'INACTIVE (<50%)';
+      lblW.style.color = whispersActive ? '#e63946' : '#64748b';
+    }
 
     // Status dots
-    document.getElementById('dotAberration').className = norm > 0.1 ? 'check-dot active' : 'check-dot';
-    document.getElementById('dotVeins').className = norm > 0.15 ? 'check-dot active' : 'check-dot';
-    document.getElementById('dotAudioLPF').className = norm > 0.25 ? 'check-dot active' : 'check-dot';
-    document.getElementById('dotWhispers').className = whispersActive ? 'check-dot active' : 'check-dot';
+    const dotAb = document.getElementById('dotAberration');
+    if (dotAb) dotAb.className = norm > 0.1 ? 'check-dot active' : 'check-dot';
+    const dotV = document.getElementById('dotVeins');
+    if (dotV) dotV.className = norm > 0.15 ? 'check-dot active' : 'check-dot';
+    const dotLpf = document.getElementById('dotAudioLPF');
+    if (dotLpf) dotLpf.className = norm > 0.25 ? 'check-dot active' : 'check-dot';
+    const dotW = document.getElementById('dotWhispers');
+    if (dotW) dotW.className = whispersActive ? 'check-dot active' : 'check-dot';
 
     // Fullscreen Vignette & Post-process overlay
     const overlay = document.getElementById('infectionOverlay');
-    overlay.style.opacity = (norm * 0.85).toString();
+    if (overlay) overlay.style.opacity = (norm * 0.85).toString();
 
     // Viewport image zoom simulating feverish camera FOV warping
     const bgImg = document.getElementById('screenBgImg');
-    const fov = (65 - norm * 12).toFixed(1);
-    bgImg.style.transform = `scale(${1 + norm * 0.15})`;
-    document.getElementById('fovIndicator').textContent = `FOV: ${fov}°`;
+    if (bgImg) bgImg.style.transform = `scale(${1 + norm * 0.15})`;
+    const fovInd = document.getElementById('fovIndicator');
+    if (fovInd) fovInd.textContent = `FOV: ${(65 - norm * 12).toFixed(1)}°`;
 
     // Audio Mixer LPF sweep
     if (window.horrorAudio) {
@@ -755,8 +771,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Procedural Bio-Veins Canvas rendering
-    drawBioVeins(norm);
+    if (typeof drawBioVeins === 'function') {
+      try { drawBioVeins(norm); } catch (e) {}
+    }
   }
+  window.updateInfectionVisuals = updateInfectionVisuals;
 
   function drawBioVeins(norm) {
     veinCtx.clearRect(0, 0, veinCanvas.width, veinCanvas.height);

@@ -2228,7 +2228,10 @@ class SurvivalGame3D {
         } else {
           // If in active game but pointer isn't locked, re-lock on canvas click
           if (!this.mouse.isLocked && !this.isPaused && !this.isExited) {
-            try { targetElement.requestPointerLock(); } catch (err) {}
+            try {
+              const p = targetElement.requestPointerLock();
+              if (p && typeof p.catch === 'function') p.catch(() => {});
+            } catch (err) {}
           }
           this.attack();
         }
@@ -2849,7 +2852,10 @@ class SurvivalGame3D {
       } else {
         playOverlay.style.display = 'none';
         if (this.renderer && this.renderer.domElement) {
-          try { this.renderer.domElement.requestPointerLock(); } catch (e) {}
+          try {
+            const p = this.renderer.domElement.requestPointerLock();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
+          } catch (e) {}
         }
       }
     }
@@ -3067,22 +3073,26 @@ class SurvivalGame3D {
     this.baseHeat.generatorActive = true;
     this.updateHeatDome();
 
-    // Reset Infection Sensory Post-Processing & Audio
-    if (window.setGlobalInfection) window.setGlobalInfection(0);
-    if (window.horrorAudio) {
-      window.horrorAudio.setInfectionCutoff(0);
-    }
+    // Reset Infection Sensory Post-Processing & Audio safely
+    try {
+      if (window.setGlobalInfection) window.setGlobalInfection(0);
+      if (window.horrorAudio) window.horrorAudio.setInfectionCutoff(0);
+    } catch (e) {}
 
-    // Reset Narrative DAG Graph
-    const resetGraphBtn = document.getElementById('btnResetGraph');
-    if (resetGraphBtn) resetGraphBtn.click();
+    // Reset Narrative DAG Graph safely
+    try {
+      const resetGraphBtn = document.getElementById('btnResetGraph');
+      if (resetGraphBtn) resetGraphBtn.click();
+    } catch (e) {}
 
     // Update HUD
-    this.updateHUD();
-    const dayEl = document.getElementById('hudDayTime');
-    if (dayEl) dayEl.textContent = 'DAY 1 | 10:00';
-    const flash = document.getElementById('damageFlashOverlay');
-    if (flash) flash.style.opacity = '0';
+    try {
+      this.updateHUD();
+      const dayEl = document.getElementById('hudDayTime');
+      if (dayEl) dayEl.textContent = 'DAY 1 | 10:00';
+      const flash = document.getElementById('damageFlashOverlay');
+      if (flash) flash.style.opacity = '0';
+    } catch (e) {}
   }
 
   initGame() {
@@ -3115,10 +3125,15 @@ class SurvivalGame3D {
       window.horrorAudio.toggleGeneratorHum(true);
     }
 
-    // 4. Request Pointer Lock
+    // 4. Request Pointer Lock (graceful fallback to mouse drag look if rejected)
     if (this.renderer && this.renderer.domElement) {
       try {
-        this.renderer.domElement.requestPointerLock();
+        const p = this.renderer.domElement.requestPointerLock();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => {
+            // Drag look fallback remains fully functional
+          });
+        }
       } catch (err) {
         console.warn("Pointer lock error on initGame:", err);
       }
