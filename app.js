@@ -122,6 +122,71 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  // How to Play & 7-Day Roadmap Modal Handlers
+  const howToPlayModal = document.getElementById('howToPlayModal');
+  const btnHowToPlay = document.getElementById('btnHowToPlay');
+  const btnCloseGuide = document.getElementById('btnCloseGuide');
+  const btnGuideBack = document.getElementById('btnGuideBackToMenu');
+  const btnGuideStart = document.getElementById('btnGuideStartGame');
+
+  const openGuide = (e) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    if (howToPlayModal) {
+      howToPlayModal.classList.add('active');
+      howToPlayModal.style.display = 'flex';
+      howToPlayModal.style.pointerEvents = 'auto';
+    }
+  };
+
+  const closeGuide = (e) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    if (howToPlayModal) {
+      howToPlayModal.classList.remove('active');
+      howToPlayModal.style.display = 'none';
+      howToPlayModal.style.pointerEvents = 'none';
+    }
+  };
+
+  if (btnHowToPlay) btnHowToPlay.onclick = openGuide;
+  if (btnCloseGuide) btnCloseGuide.onclick = closeGuide;
+  if (btnGuideBack) btnGuideBack.onclick = closeGuide;
+  if (btnGuideStart) {
+    btnGuideStart.onclick = (e) => {
+      closeGuide(e);
+      if (window.game3D) window.game3D.initGame();
+      else if (window.initGame) window.initGame();
+    };
+  }
+
+  if (howToPlayModal) {
+    howToPlayModal.onclick = (e) => {
+      if (e.target === howToPlayModal) {
+        closeGuide(e);
+      }
+    };
+  }
+
+  // Guide Modal Sub-Tabs Switching
+  const guideTabBtns = document.querySelectorAll('.guide-tab-btn');
+  guideTabBtns.forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const targetTabId = btn.getAttribute('data-guide-tab');
+      guideTabBtns.forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.guide-tab-panel').forEach(p => p.classList.remove('active'));
+
+      btn.classList.add('active');
+      const panel = document.getElementById(targetTabId);
+      if (panel) panel.classList.add('active');
+    };
+  });
+
   // Hook Exit HUD and Exit Popup Buttons
   const btnExitHud = document.getElementById('btnExitGameHud');
   if (btnExitHud) {

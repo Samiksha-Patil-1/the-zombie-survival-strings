@@ -2298,9 +2298,75 @@ class SurvivalGame3D {
       };
     }
 
+    // How to Play Guide Modal Handlers
+    const btnHowToPlay = document.getElementById('btnHowToPlay');
+    if (btnHowToPlay) {
+      btnHowToPlay.onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const modal = document.getElementById('howToPlayModal');
+        if (modal) {
+          modal.classList.add('active');
+          modal.style.display = 'flex';
+        }
+      };
+    }
+
+    const btnCloseGuide = document.getElementById('btnCloseGuide');
+    if (btnCloseGuide) {
+      btnCloseGuide.onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const modal = document.getElementById('howToPlayModal');
+        if (modal) {
+          modal.classList.remove('active');
+          modal.style.display = 'none';
+        }
+      };
+    }
+
+    const btnGuideBack = document.getElementById('btnGuideBackToMenu');
+    if (btnGuideBack) {
+      btnGuideBack.onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const modal = document.getElementById('howToPlayModal');
+        if (modal) {
+          modal.classList.remove('active');
+          modal.style.display = 'none';
+        }
+      };
+    }
+
+    const btnGuideStart = document.getElementById('btnGuideStartGame');
+    if (btnGuideStart) {
+      btnGuideStart.onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const modal = document.getElementById('howToPlayModal');
+        if (modal) {
+          modal.classList.remove('active');
+          modal.style.display = 'none';
+        }
+        this.initGame();
+      };
+    }
+
+    const guideOverlay = document.getElementById('howToPlayModal');
+    if (guideOverlay) {
+      guideOverlay.onclick = (e) => {
+        if (e.target === guideOverlay) {
+          guideOverlay.classList.remove('active');
+          guideOverlay.style.display = 'none';
+        }
+      };
+    }
+
     const playOverlayEl = document.getElementById('clickToPlayOverlay');
     if (playOverlayEl) {
       playOverlayEl.onclick = (e) => {
+        // Prevent starting game when clicking guide button or guide modal
+        if (e.target.closest('#howToPlayModal') || e.target.closest('#btnHowToPlay')) return;
         if (!this.hasStartedGame) {
           this.initGame();
         }
@@ -2923,12 +2989,19 @@ class SurvivalGame3D {
       exitPopup.style.pointerEvents = 'auto';
     }
 
-    // Hide Main Menu if open
+    // Hide Main Menu & Guide Modal if open
     const playOverlay = document.getElementById('clickToPlayOverlay');
     if (playOverlay) {
       playOverlay.classList.add('hidden');
       playOverlay.style.display = 'none';
       playOverlay.style.pointerEvents = 'none';
+    }
+
+    const guideModal = document.getElementById('howToPlayModal');
+    if (guideModal) {
+      guideModal.classList.remove('active');
+      guideModal.style.display = 'none';
+      guideModal.style.pointerEvents = 'none';
     }
 
     // Auto-Timer countdown to continue back to Main Menu (3 seconds)
@@ -2978,12 +3051,19 @@ class SurvivalGame3D {
       this._exitCountdownInterval = null;
     }
 
-    // 2. Hide Exit Popup
+    // 2. Hide Exit Popup & Guide Modal
     const exitPopup = document.getElementById('exitGamePopup');
     if (exitPopup) {
       exitPopup.classList.remove('active');
       exitPopup.style.display = 'none';
       exitPopup.style.pointerEvents = 'none';
+    }
+
+    const guideModal = document.getElementById('howToPlayModal');
+    if (guideModal) {
+      guideModal.classList.remove('active');
+      guideModal.style.display = 'none';
+      guideModal.style.pointerEvents = 'none';
     }
 
     // 3. Reset Game State to prepare for fresh session
@@ -3148,6 +3228,13 @@ class SurvivalGame3D {
       exitPopup.classList.remove('active');
       exitPopup.style.display = 'none';
       exitPopup.style.pointerEvents = 'none';
+    }
+
+    const guideModal = document.getElementById('howToPlayModal');
+    if (guideModal) {
+      guideModal.classList.remove('active');
+      guideModal.style.display = 'none';
+      guideModal.style.pointerEvents = 'none';
     }
 
     const modal = document.getElementById('gameOverModal');

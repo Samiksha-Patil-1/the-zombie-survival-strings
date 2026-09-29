@@ -146,19 +146,304 @@
               <h1 class="main-menu-title">ZOMBIE: STRING OF SURVIVAL</h1>
               <p class="main-menu-tagline">Alexia's Survival in District 4</p>
 
-              <button id="btnStartNewGame" class="main-menu-start-btn">
-                <span class="play-icon">▶</span>
-                <span>START NEW GAME</span>
-              </button>
+              <div class="main-menu-actions">
+                <button id="btnStartNewGame" class="main-menu-start-btn">
+                  <span class="play-icon">▶</span>
+                  <span>START NEW GAME</span>
+                </button>
+
+                <button id="btnHowToPlay" class="main-menu-guide-btn">
+                  <span class="guide-icon">📖</span>
+                  <span>HOW TO PLAY &amp; 7-DAY ROADMAP</span>
+                </button>
+              </div>
 
               <div class="main-menu-controls-hint">
                 <span>WASD: Move</span>
                 <span>•</span>
                 <span>MOUSE: Aim & Shoot</span>
                 <span>•</span>
-                <span>V: View</span>
+                <span>V: View (FPS/TPS)</span>
+                <span>•</span>
+                <span>U: Drone Fly</span>
                 <span>•</span>
                 <span>ESC: Exit</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- How to Play, Features & 7-Day Roadmap Modal -->
+          <div id="howToPlayModal" class="how-to-play-overlay" style="display: none;">
+            <div class="guide-modal-card">
+              <div class="guide-modal-header">
+                <div class="guide-header-title-box">
+                  <span class="guide-badge">SURVIVOR SURVIVAL CODEX</span>
+                  <h2 class="guide-title">HOW TO PLAY &amp; 7-DAY ROADMAP</h2>
+                </div>
+                <button id="btnCloseGuide" class="guide-close-btn" title="Close Guide">✕</button>
+              </div>
+
+              <!-- Navigation Sub-Tabs -->
+              <div class="guide-nav-tabs">
+                <button class="guide-tab-btn active" data-guide-tab="tabControls">
+                  <span class="tab-icon">🎮</span> CONTROLS &amp; MOVEMENT
+                </button>
+                <button class="guide-tab-btn" data-guide-tab="tabFeatures">
+                  <span class="tab-icon">✨</span> GAME FEATURES (FLY, VIEW, HEAT)
+                </button>
+                <button class="guide-tab-btn" data-guide-tab="tabRoadmap">
+                  <span class="tab-icon">📅</span> 7-DAY ROADMAP &amp; UNLOCKS
+                </button>
+                <button class="guide-tab-btn" data-guide-tab="tabSurvival">
+                  <span class="tab-icon">🩸</span> INFECTION &amp; SURVIVAL
+                </button>
+              </div>
+
+              <div class="guide-modal-content">
+                <!-- TAB 1: CONTROLS & MOVEMENT -->
+                <div id="tabControls" class="guide-tab-panel active">
+                  <div class="guide-grid">
+                    <div class="guide-card">
+                      <div class="card-icon-title">
+                        <span class="icon-wrap">🏃</span>
+                        <h3>Basic Ground Movement</h3>
+                      </div>
+                      <div class="control-row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <span>Move forward, strafe left/right, backward</span></div>
+                      <div class="control-row"><kbd>Left Shift</kbd> <span>Sprint (consumes stamina, increases footstep noise)</span></div>
+                      <div class="control-row"><kbd>C</kbd> <span>Crouch (stealth posture, dampens acoustic noise by 75%)</span></div>
+                      <div class="control-row"><kbd>Mouse</kbd> <span>Look around &amp; aim camera (smooth 360° rotation)</span></div>
+                    </div>
+
+                    <div class="guide-card">
+                      <div class="card-icon-title">
+                        <span class="icon-wrap">🔫</span>
+                        <h3>Combat &amp; Weapon Handling</h3>
+                      </div>
+                      <div class="control-row"><kbd>Left Click</kbd> <span>Attack: Fire Silenced Pistol or swing Barbed-Wire Bat</span></div>
+                      <div class="control-row"><kbd>Right Click</kbd> <span>Hold ADS (Aim Down Sights: zooms in and tightens accuracy)</span></div>
+                      <div class="control-row"><kbd>R</kbd> <span>Tactical Reload (refills 24-round magazine)</span></div>
+                      <div class="control-row"><kbd>1</kbd> / <kbd>2</kbd> <span>Switch weapons (1: Silenced Pistol, 2: Barbed-Wire Bat)</span></div>
+                    </div>
+
+                    <div class="guide-card">
+                      <div class="card-icon-title">
+                        <span class="icon-wrap">👁️</span>
+                        <h3>Camera Views &amp; Fly Mode</h3>
+                      </div>
+                      <div class="control-row"><kbd>V</kbd> <span>Toggle Camera View (First-Person FPS vs Over-Shoulder TPS)</span></div>
+                      <div class="control-row"><kbd>U</kbd> <span>Tactical Recon Drone (Free-flying city aerial camera mode)</span></div>
+                      <div class="control-row"><kbd>F</kbd> <span>Toggle Tactical Weapon Flashlight</span></div>
+                      <div class="control-row"><kbd>ESC</kbd> <span>Exit Session / Return to Main Menu</span></div>
+                    </div>
+
+                    <div class="guide-card">
+                      <div class="card-icon-title">
+                        <span class="icon-wrap">🤝</span>
+                        <h3>Interaction &amp; Base Survival</h3>
+                      </div>
+                      <div class="control-row"><kbd>E</kbd> <span>Interact with survivors, loot supply crates, start generator</span></div>
+                      <div class="control-row"><kbd>F</kbd> <span>Flashlight beam toggle for dark interior corners</span></div>
+                      <div class="control-row"><kbd>M</kbd> <span>District 4 tactical map telemetry view</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- TAB 2: GAME FEATURES (FLY, VIEW, HEAT) -->
+                <div id="tabFeatures" class="guide-tab-panel">
+                  <div class="features-grid">
+                    <div class="feature-item">
+                      <div class="feature-badge">AERIAL RECON</div>
+                      <h4>🛸 Tactical Recon Drone (Fly Mode)</h4>
+                      <p>Press <kbd>U</kbd> at any time to deploy the aerial recon drone. Fly freely throughout the apocalyptic city, above skyscraper rooftops and burning overpasses. Use <kbd>W/S</kbd> to fly forward/back, <kbd>A/D</kbd> to strafe, <kbd>Space</kbd> to ascend into the clouds, and <kbd>Shift</kbd> to descend. Press <kbd>U</kbd> or <kbd>V</kbd> again to seamlessly return to Alexia on the ground.</p>
+                    </div>
+
+                    <div class="feature-item">
+                      <div class="feature-badge">DUAL PERSPECTIVE</div>
+                      <h4>👤 First-Person (FPS) &amp; Third-Person (TPS)</h4>
+                      <p>Press <kbd>V</kbd> to switch between hyper-immersive First-Person perspective (tactical iron sights and weapon bob) and cinematic Over-the-Shoulder Third-Person perspective showing Alexia's detailed 3D model, tactical survivor jacket, ponytail, and procedural walking animations.</p>
+                    </div>
+
+                    <div class="feature-item">
+                      <div class="feature-badge">BASE DEFENSE</div>
+                      <h4>🔥 Base Heat Attraction Sphere</h4>
+                      <p>District 4 HQ is powered by a heavy diesel generator. Running generators, floodlights, and crafting benches generates <b>Base Heat</b>. The attraction radius expands dynamically: <code>Radius = TotalHeat × 2.0m</code>. If heat expands too far, street roaming hordes lock onto the safehouse doors!</p>
+                    </div>
+
+                    <div class="feature-item">
+                      <div class="feature-badge">SURVIVORS</div>
+                      <h4>👥 Physical NPC Survivors with Dialogue</h4>
+                      <p>Meet and converse with key survivors: <b>Dr. Evelyn Reed</b> (Virologist crafting the Day 7 antiviral vaccine), <b>Marcus Vance</b> (Chief Engineer building turrets), and <b>Sgt. Darius Cole</b> (Combat Veteran coordinating watchtower defense). Walk up and press <kbd>E</kbd> to speak with them.</p>
+                    </div>
+
+                    <div class="feature-item">
+                      <div class="feature-badge">AI DIRECTOR</div>
+                      <h4>🧠 Behavior Mirror AI Director</h4>
+                      <p>The AI Director actively calculates your playstyle vector (Stealth vs Aggression vs Looting). If you sprint and fire recklessly, the Director spawns <b>Sound-Adapted Swarmers</b>. If you crouch in shadows, <b>Ceiling-Crawling Ambushers</b> will drop from above.</p>
+                    </div>
+
+                    <div class="feature-item">
+                      <div class="feature-badge">PHYSICAL AUDIO</div>
+                      <h4>🔊 Psychoacoustic Horror Audio Engine</h4>
+                      <p>Directional positional WebAudio synthesizes generator hums, zombie groans, acoustic footsteps, and procedural gunfire recoil. Adjust sound anytime with the header audio toggle.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- TAB 3: 7-DAY ROADMAP & UNLOCKS -->
+                <div id="tabRoadmap" class="guide-tab-panel">
+                  <div class="roadmap-timeline">
+                    <!-- Day 1 -->
+                    <div class="roadmap-day-card">
+                      <div class="day-badge-col">
+                        <span class="day-number">DAY 01</span>
+                        <span class="status-pill unlocked">UNLOCKED</span>
+                      </div>
+                      <div class="day-content">
+                        <h4>Outbreak Zero • Arrival at District 4</h4>
+                        <p class="day-desc">Alexia retreats into the substation safehouse amidst citywide collapse. Meet Dr. Reed, Marcus, and Sgt. Cole.</p>
+                        <div class="unlock-tags">
+                          <span class="tag-unlock">🎁 UNLOCK: Silenced Tactical Pistol (24 Rds)</span>
+                          <span class="tag-unlock">🎁 UNLOCK: Barbed-Wire Baseball Bat</span>
+                          <span class="tag-unlock">🎁 UNLOCK: Safehouse Substation HQ</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Day 2 -->
+                    <div class="roadmap-day-card">
+                      <div class="day-badge-col">
+                        <span class="day-number">DAY 02</span>
+                        <span class="status-pill active">ROADMAP</span>
+                      </div>
+                      <div class="day-content">
+                        <h4>Acoustic Evolution • Sound-Adapted Swarmers</h4>
+                        <p class="day-desc">The pathogen calcifies the upper skull of zombies, heightening acoustic hearing. Gunfire draws hordes across 100 meters.</p>
+                        <div class="unlock-tags">
+                          <span class="tag-unlock">🎁 UNLOCK: Acoustic Noise Radar HUD</span>
+                          <span class="tag-unlock">🎁 UNLOCK: Tactical Crouch Sneak (C key dampening)</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Day 3 -->
+                    <div class="roadmap-day-card">
+                      <div class="day-badge-col">
+                        <span class="day-number">DAY 03</span>
+                        <span class="status-pill active">ROADMAP</span>
+                      </div>
+                      <div class="day-content">
+                        <h4>Power Grid Surge • Diesel Heat Dome</h4>
+                        <p class="day-desc">Restore generator power to activate perimeter floodlights. Balancing appliance heat is vital to avoid horde attraction.</p>
+                        <div class="unlock-tags">
+                          <span class="tag-unlock">🎁 UNLOCK: Interactive Diesel Generator Overcharge</span>
+                          <span class="tag-unlock">🎁 UNLOCK: Perimeter Floodlight Beacons</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Day 4 -->
+                    <div class="roadmap-day-card">
+                      <div class="day-badge-col">
+                        <span class="day-number">DAY 04</span>
+                        <span class="status-pill active">ROADMAP</span>
+                      </div>
+                      <div class="day-content">
+                        <h4>Shadow Ambushers &amp; Aerial Surveillance</h4>
+                        <p class="day-desc">Lurkers mutate with elongated bone-claws to scale vertical building facades. Deploy the drone to scout rooftops safely.</p>
+                        <div class="unlock-tags">
+                          <span class="tag-unlock">🎁 UNLOCK: Tactical Recon Drone (U key Free Flight)</span>
+                          <span class="tag-unlock">🎁 UNLOCK: High-Intensity Tactical Flashlight</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Day 5 -->
+                    <div class="roadmap-day-card">
+                      <div class="day-badge-col">
+                        <span class="day-number">DAY 05</span>
+                        <span class="status-pill active">ROADMAP</span>
+                      </div>
+                      <div class="day-content">
+                        <h4>Automated Fortifications • Sentry Turrets</h4>
+                        <p class="day-desc">Marcus finishes assembling automated defense turrets using scrap salvaged from the highway overpass.</p>
+                        <div class="unlock-tags">
+                          <span class="tag-unlock">🎁 UNLOCK: Automated Sentry Gun Defense</span>
+                          <span class="tag-unlock">🎁 UNLOCK: Heavy Caliber Ammo Caches</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Day 6 -->
+                    <div class="roadmap-day-card">
+                      <div class="day-badge-col">
+                        <span class="day-number">DAY 06</span>
+                        <span class="status-pill active">ROADMAP</span>
+                      </div>
+                      <div class="day-content">
+                        <h4>Bio-Titan Siege • Goliath Tank Mutants</h4>
+                        <p class="day-desc">Massive 240 HP Goliath Tank zombies march on District 4, shrugging off standard pistol fire. Aim for critical headshot fractures.</p>
+                        <div class="unlock-tags">
+                          <span class="tag-unlock">🎁 UNLOCK: High-Explosive Fuel Barrels</span>
+                          <span class="tag-unlock">🎁 UNLOCK: St. Jude Hospital Triage Clinic Access</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Day 7 -->
+                    <div class="roadmap-day-card highlight-day">
+                      <div class="day-badge-col">
+                        <span class="day-number">DAY 07</span>
+                        <span class="status-pill climax">FINAL EXTRACTION</span>
+                      </div>
+                      <div class="day-content">
+                        <h4>The Antiviral Decision • Military Extraction Zulu-9</h4>
+                        <p class="day-desc">Dawn of Day 7: Rescue helicopter Zulu-9 arrives at the skyscraper helipad. Choose: escape with Dr. Reed's synthesized vaccine cure or defend the safehouse to the last bullet!</p>
+                        <div class="unlock-tags">
+                          <span class="tag-unlock">🏆 UNLOCK: Dr. Reed's Day 7 Antiviral Cure</span>
+                          <span class="tag-unlock">🏆 UNLOCK: Helipad Extraction Flare Event</span>
+                          <span class="tag-unlock">🏆 UNLOCK: Narrative DAG Graph Multi-Endings</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- TAB 4: INFECTION & SURVIVAL -->
+                <div id="tabSurvival" class="guide-tab-panel">
+                  <div class="survival-guide-layout">
+                    <div class="survival-column">
+                      <h3>🩸 Organic Infection Sensory Degradation</h3>
+                      <p>Unlike ordinary arcade games, Alexia's infection is sensory and physical:</p>
+                      <ul class="survival-list">
+                        <li><b>0% — 25%:</b> Normal vision and crisp psychoacoustic sound.</li>
+                        <li><b>25% — 50%:</b> Chromatic aberration starts dispersing peripheral vision. Bio-vein tendrils creep around screen corners.</li>
+                        <li><b>50% — 75%:</b> Low-pass audio filter muffles external sound to under 1,200 Hz; binaural whisper hallucinations trigger.</li>
+                        <li><b>75% — 100%:</b> Violent red damage vignettes, tunnels vision, and final neural collapse.</li>
+                        <li><b>100% Infection:</b> Session terminates — <b>"You are out!"</b> automatically freezes the simulation and returns to Main Screen.</li>
+                      </ul>
+                    </div>
+
+                    <div class="survival-column">
+                      <h3>🛡️ Pro Survival Tactics</h3>
+                      <ul class="survival-list">
+                        <li><b>Crouch Often (<kbd>C</kbd>):</b> Sound-Adapted Swarmers rely on audio cues. Crouching lets you sneak right past their blind spots.</li>
+                        <li><b>Preserve Ammo:</b> Use the Barbed-Wire Bat (<kbd>2</kbd>) on lone zombies to conserve your 24 pistol rounds.</li>
+                        <li><b>Watch Base Heat:</b> Overcharging the generator grants emergency power but attracts all zombies in a 140m perimeter.</li>
+                        <li><b>Use Fly Mode (<kbd>U</kbd>):</b> Before stepping out into the open highway, launch your drone to scout enemy clusters.</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal Footer -->
+              <div class="guide-modal-footer">
+                <button id="btnGuideBackToMenu" class="guide-btn-secondary">
+                  <span>←</span> <span>BACK TO MAIN MENU</span>
+                </button>
+                <button id="btnGuideStartGame" class="main-menu-start-btn" style="width: auto; padding: 12px 28px;">
+                  <span class="play-icon">▶</span> <span>START NEW GAME NOW</span>
+                </button>
               </div>
             </div>
           </div>
