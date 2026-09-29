@@ -94,21 +94,9 @@
     <section id="game3DTab" class="view-panel active">
       <div class="game3d-layout">
         <div class="viewport-3d-wrapper" id="game3DContainer">
-          <!-- Top Compass Bar (PUBG / Free Fire Style) -->
-          <div class="top-compass-bar">
-            <span class="compass-icon">🧭</span>
-            <span id="hudCompassBar" class="compass-deg">0° | N</span>
-          </div>
-
-          <!-- Quick Action Toolbar -->
-          <div class="hud-top-actions">
-            <button id="btnToggleDrone" class="action-pill-btn"><span class="pill-icon">🛸</span> FLY CITY DRONE [T]</button>
-            <button id="btnToggleCamView" class="action-pill-btn"><span class="pill-icon">👁️</span> 1ST/3RD VIEW [V]</button>
-            <button id="btnEquipPistol" class="action-pill-btn active"><span class="pill-icon">🔫</span> PISTOL [1]</button>
-            <button id="btnEquipBat" class="action-pill-btn"><span class="pill-icon">🏏</span> BARBED BAT [2]</button>
-            <button id="btnRestartGameHud" class="action-pill-btn btn-restart-hud"><span class="pill-icon">↺</span> RESTART GAME</button>
-            <button id="btnExitGameHud" class="action-pill-btn btn-exit-hud"><span class="pill-icon">🚪</span> EXIT GAME [ESC]</button>
-          </div>
+          
+          <!-- Top Right Minimal Exit Button -->
+          <button id="btnExitGameHud" class="hud-exit-btn" title="Exit to Main Menu">🚪 EXIT [ESC]</button>
 
           <!-- Center Crosshair & Hit Marker -->
           <div class="crosshair-center">
@@ -121,38 +109,24 @@
             Press E to Interact
           </div>
 
-          <!-- Hunted Warning Banner -->
-          <div id="huntedWarningBanner" class="hunted-warning-banner" style="display: none;">
-            <span class="warning-pulse-icon">⚠️</span>
-            <span id="huntedWarningText">ALERT: ZOMBIE HUNTING YOU!</span>
-          </div>
-
           <!-- Red Damage Screen Flash Vignette -->
           <div id="damageFlashOverlay" class="damage-flash-overlay"></div>
 
-          <!-- Exit Game Popup Component (Overlays Frozen Screen) -->
+          <!-- Exit Game Popup Component (Overlays Frozen Screen on Exit or Zombie Defeat) -->
           <div id="exitGamePopup" class="exit-popup-overlay" style="display: none;">
             <div class="exit-popup-card">
-              <div class="exit-badge">SESSION SUSPENDED • EXIT DETECTED</div>
+              <div class="exit-badge">SESSION TERMINATED</div>
               <h1 class="exit-title">You are out!</h1>
-              <p class="exit-desc">You have exited the active survival session. Game simulation has been halted and all player stats, loops, and resources are preserved for reset.</p>
+              <p id="exitPopupReason" class="exit-desc">A zombie attacked and infected you.</p>
               
               <div class="exit-stats-preview">
                 <div class="exit-stat-box">
-                  <span class="exit-stat-lbl">CURRENT LEVEL</span>
-                  <span class="exit-stat-val" id="exitStatDay">DAY 1</span>
+                  <span class="exit-stat-lbl">DAY SURVIVED</span>
+                  <span class="exit-stat-val" id="exitStatDay">1</span>
                 </div>
                 <div class="exit-stat-box">
-                  <span class="exit-stat-lbl">ZOMBIES KILLED</span>
+                  <span class="exit-stat-lbl">ZOMBIES ELIMINATED</span>
                   <span class="exit-stat-val highlight" id="exitStatKills">0</span>
-                </div>
-                <div class="exit-stat-box">
-                  <span class="exit-stat-lbl">INFECTION</span>
-                  <span class="exit-stat-val infection" id="exitStatInfection">0.0%</span>
-                </div>
-                <div class="exit-stat-box">
-                  <span class="exit-stat-lbl">SIMULATION</span>
-                  <span class="exit-stat-val" style="color: var(--accent-amber);">FROZEN</span>
                 </div>
               </div>
 
@@ -161,219 +135,56 @@
                   <span>RETURN TO MAIN SCREEN</span>
                   <span id="exitCountdownTimer" class="exit-timer-chip">(3s)</span>
                 </button>
-                <button id="btnExitStartNewGameDirect" class="exit-btn-secondary">
-                  <span>↺</span>
-                  <span>START NEW GAME NOW</span>
-                </button>
               </div>
             </div>
           </div>
 
-          <!-- Game Over / Victory / Replay Modal -->
-          <div id="gameOverModal" class="game-over-overlay" style="display: none;">
-            <div class="game-over-card">
-              <div class="go-badge" id="goBadge">STATUS: HUNTED & CONSUMED</div>
-              <h1 class="go-title" id="goTitle">SURVIVAL TERMINATED</h1>
-              <p class="go-desc" id="goDesc">You were hunted down and overwhelmed by District 4 mutants.</p>
-              
-              <div class="go-stats-grid">
-                <div class="go-stat-item">
-                  <span class="go-stat-lbl">DAYS SURVIVED</span>
-                  <span class="go-stat-val" id="goStatDays">1</span>
-                </div>
-                <div class="go-stat-item">
-                  <span class="go-stat-lbl">ZOMBIES ELIMINATED</span>
-                  <span class="go-stat-val highlight" id="goStatKills">0</span>
-                </div>
-                <div class="go-stat-item">
-                  <span class="go-stat-lbl">FINAL INFECTION</span>
-                  <span class="go-stat-val infection" id="goStatInfection">0.0%</span>
-                </div>
-                <div class="go-stat-item">
-                  <span class="go-stat-lbl">BASE HEAT RADIUS</span>
-                  <span class="go-stat-val" id="goStatHeat">90m</span>
-                </div>
-              </div>
-
-              <div class="go-actions">
-                <button id="btnReplayGame" class="replay-primary-btn">
-                  <span class="btn-replay-icon">↺</span>
-                  <span>END PREVIOUS PLAY &amp; START NEW GAME</span>
-                </button>
-                <button id="btnHardReloadGameOver" class="cyber-btn" style="border-color: rgba(230, 57, 70, 0.4); color: var(--accent-crimson); justify-content: center;">
-                  <span>⚡</span>
-                  <span>HARD RESET APPLICATION (RELOAD PAGE)</span>
-                </button>
-                <button id="btnExploreGraphFromDeath" class="cyber-btn" style="justify-content: center;">
-                  <span>🕸️</span>
-                  <span>INSPECT SURVIVAL STRING DAG</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Click To Play / Enter Survival Mode Overlay (Main Menu / Opening Screen) -->
+          <!-- Click To Play / Main Menu Overlay (Opening Screen) -->
           <div id="clickToPlayOverlay" class="click-to-play-overlay">
-            <div class="overlay-modal">
-              <div class="overlay-badge">MAIN MENU • AAA 3D/4D/5D REAL-TIME ENGINE</div>
-              <h1 class="overlay-title">ZOMBIE: STRING OF SURVIVAL</h1>
-              <p class="overlay-desc" style="font-size: 13.5px; line-height: 1.55; color: var(--text-main); margin-bottom: 14px;">
-                <b>You are Alexia</b>, trapped in a zombie-infested District 4, and you have 7 days to explore the city, collect resources, rescue survivors, manage your increasingly detectable base, adapt to enemies that respond to your playstyle, uncover the infection mystery, and finally escape from the harbor.
-              </p>
-              
-              <div class="overlay-characters-preview" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px;">
-                <span class="preview-badge" style="background: rgba(236, 72, 153, 0.15); border: 1px solid #ec4899; color: #f472b6; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-family: var(--font-tech);">🌸 Alexia (Protagonist)</span>
-                <span class="preview-badge" style="background: rgba(13, 148, 136, 0.15); border: 1px solid #0d9488; color: #5eead4; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-family: var(--font-tech);">🩺 Dr. Evelyn (Doctor)</span>
-                <span class="preview-badge" style="background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; color: #fcd34d; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-family: var(--font-tech);">🔧 Marcus (Engineer)</span>
-                <span class="preview-badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #6ee7b7; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-family: var(--font-tech);">🛡️ Sgt. Cole (Soldier)</span>
-                <span class="preview-badge" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-family: var(--font-tech);">🧟 Mutated Horror Horde</span>
-              </div>
+            <div class="main-menu-card">
+              <div class="main-menu-badge">AAA 3D SURVIVAL HORROR</div>
+              <h1 class="main-menu-title">ZOMBIE: STRING OF SURVIVAL</h1>
+              <p class="main-menu-tagline">Alexia's Survival in District 4</p>
 
-              <div class="overlay-btn-group">
-                <button id="btnStartNewGame" class="play-primary-btn btn-start-new-game">
-                  <span class="btn-play-icon">▶</span>
-                  <span>START NEW GAME</span>
-                </button>
-                <button id="btnStartGamePlay" class="play-drone-btn">
-                  <span>🎮</span>
-                  <span>ENTER SURVIVAL ZONE</span>
-                </button>
-                <button id="btnQuickDroneStart" class="play-drone-btn">
-                  <span>🛸</span>
-                  <span>FLY DRONE [T]</span>
-                </button>
-                <button id="btnRestartFromPause" class="play-drone-btn btn-restart-pause">
-                  <span>↺</span>
-                  <span>RESTART RUN</span>
-                </button>
-              </div>
+              <button id="btnStartNewGame" class="main-menu-start-btn">
+                <span class="play-icon">▶</span>
+                <span>START NEW GAME</span>
+              </button>
 
-              <div class="overlay-controls-grid">
-                <div><span>MOVE:</span> <b>W, A, S, D</b></div>
-                <div><span>LOOK:</span> <b>MOUSE (Click/Drag)</b></div>
-                <div><span>ATTACK:</span> <b>LEFT CLICK</b></div>
-                <div><span>AIM (ADS):</span> <b>RIGHT CLICK</b></div>
-                <div><span>CROUCH (STEALTH):</span> <b>C</b></div>
-                <div><span>SPRINT:</span> <b>SHIFT</b></div>
-                <div><span>DRONE FLY:</span> <b>T</b></div>
-                <div><span>1ST/3RD VIEW:</span> <b>V</b></div>
-                <div><span>INTERACT / TALK:</span> <b>E</b></div>
-                <div><span>UNLOCK MOUSE:</span> <b>ESC</b></div>
+              <div class="main-menu-controls-hint">
+                <span>WASD: Move</span>
+                <span>•</span>
+                <span>MOUSE: Aim & Shoot</span>
+                <span>•</span>
+                <span>V: View</span>
+                <span>•</span>
+                <span>ESC: Exit</span>
               </div>
-              <div class="overlay-note">💡 Tip: You can drag your mouse or click to lock mouse look. Audio effects initialize automatically on click!</div>
             </div>
           </div>
 
-          <!-- 3D HUD Ingame Display -->
-          <div class="hud-3d-stats">
-            <div class="hud-stat-box">
-              <span class="hud-sub-label">VITAL SIGNS</span>
-              <div class="hud-bar-row">
-                <span>HEALTH:</span>
-                <div class="progress-bar"><div id="hudHealthBar3D" class="progress-fill health" style="width: 100%;"></div></div>
-              </div>
-              <div class="hud-bar-row">
-                <span>STAMINA:</span>
-                <div class="progress-bar"><div id="hudStaminaBar3D" class="progress-fill stamina" style="width: 100%;"></div></div>
-              </div>
-              <div class="hud-bar-row">
-                <span>INFECTION:</span>
-                <div class="progress-bar"><div id="hudInfectionBar3D" class="progress-fill infection" style="width: 0%;"></div></div>
-              </div>
+          <!-- Minimal Ingame HUD (Clean & Non-Intrusive) -->
+          <div class="hud-minimal-left">
+            <div class="hud-bar-row">
+              <span style="color: #34d399; font-weight: bold;">HP</span>
+              <div class="progress-bar"><div id="hudHealthBar3D" class="progress-fill health" style="width: 100%;"></div></div>
             </div>
-
-            <div class="hud-stat-box">
-              <span class="hud-sub-label">TACTICAL LOADOUT</span>
-              <div class="hud-val-row">
-                <span>AMMO:</span> <b id="hudAmmo3D" class="val-highlight">24 / 24</b>
-              </div>
-              <div class="hud-val-row">
-                <span>POSTURE:</span> <span id="hudPosture" class="hud-tag">STANDING</span>
-              </div>
-              <div class="hud-val-row">
-                <span>FLASHLIGHT:</span> <span class="hud-tag">[F] ACTIVE</span>
-              </div>
+            <div class="hud-bar-row">
+              <span style="color: #38bdf8; font-weight: bold;">STM</span>
+              <div class="progress-bar"><div id="hudStaminaBar3D" class="progress-fill stamina" style="width: 100%;"></div></div>
             </div>
-
-            <div class="hud-stat-box controls-card">
-              <span class="hud-sub-label">SURVIVOR CONTROLS</span>
-              <p><b>CLICK CANVAS</b> : Lock Mouse Look</p>
-              <p><b>W / A / S / D</b> : Move</p>
-              <p><b>LEFT CLICK</b> : Fire / Attack</p>
-              <p><b>RIGHT CLICK</b> : Aim Down Sights (ADS)</p>
-              <p><b>C</b> : Crouch (Stealth)</p>
-              <p><b>SHIFT</b> : Sprint</p>
-              <p><b>E</b> : Talk / Loot / Toggle Generator</p>
-              <p><b>F</b> : Flashlight | <b>V</b> : 1st/3rd Person</p>
+            <div id="hudInfectionRow" class="hud-bar-row" style="display: none;">
+              <span style="color: #f43f5e; font-weight: bold;">INF</span>
+              <div class="progress-bar"><div id="hudInfectionBar3D" class="progress-fill infection" style="width: 0%;"></div></div>
             </div>
           </div>
+
+          <div class="hud-minimal-right">
+            <span>🔫</span>
+            <span id="hudAmmo3D">24 / 24</span>
+          </div>
+
         </div>
-
-        <!-- 3D Sidebar: Characters & Missions -->
-        <aside class="sidebar-3d">
-          <div class="panel-card glass-panel">
-            <h3 class="card-title">DISTRICT 4 SURVIVOR ROSTER</h3>
-            <p class="card-desc">Find, dialogue, and recruit NPCs across the city to unlock specialized facilities.</p>
-
-            <div class="character-roster">
-              <!-- Dr. Evelyn Reed -->
-              <div class="character-card">
-                <div class="char-header">
-                  <span class="char-name">DR. EVELYN REED</span>
-                  <span class="char-role doctor">DOCTOR</span>
-                </div>
-                <p class="char-loc">📍 Location: St. Jude Clinic (Triage Bay)</p>
-                <p class="char-skill">Skill: Treats severe infection & trauma. Synthesizes Day 7 Cure if medical crate retrieved.</p>
-              </div>
-
-              <!-- Marcus Vance -->
-              <div class="character-card">
-                <div class="char-header">
-                  <span class="char-name">MARCUS VANCE</span>
-                  <span class="char-role engineer">ENGINEER</span>
-                </div>
-                <p class="char-loc">📍 Location: Safehouse Substation (Generator Room)</p>
-                <p class="char-skill">Skill: Operates Diesel Generator; crafts automated 5.56mm sentry turrets.</p>
-              </div>
-
-              <!-- Sgt. Darius Cole -->
-              <div class="character-card">
-                <div class="char-header">
-                  <span class="char-name">SGT. DARIUS COLE</span>
-                  <span class="char-role soldier">SOLDIER</span>
-                </div>
-                <p class="char-loc">📍 Location: Safehouse Perimeter Watchtower</p>
-                <p class="char-skill">Skill: Marks approaching mutant hordes; sniper perimeter support.</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel-card glass-panel">
-            <h3 class="card-title">ACTIVE 7-DAY OBJECTIVES</h3>
-            <div class="mission-timeline">
-              <div class="timeline-step done">
-                <span class="step-day">DAY 1</span>
-                <span>Secure District 4 Safehouse & Power Grid</span>
-              </div>
-              <div class="timeline-step active">
-                <span class="step-day">DAY 2</span>
-                <span>Infiltrate St. Jude Clinic & Rescue Dr. Evelyn</span>
-              </div>
-              <div class="timeline-step">
-                <span class="step-day">DAY 3</span>
-                <span>Scavenge Police Precinct for High-Caliber Ammo</span>
-              </div>
-              <div class="timeline-step">
-                <span class="step-day">DAY 5</span>
-                <span>Venture through Metro Tunnels into Biogenix Lab</span>
-              </div>
-              <div class="timeline-step highlight">
-                <span class="step-day">DAY 7</span>
-                <span>Reach Harbor Pier for Final Evacuation Flight Zulu-9</span>
-              </div>
-            </div>
-          </div>
-        </aside>
       </div>
     </section>
 

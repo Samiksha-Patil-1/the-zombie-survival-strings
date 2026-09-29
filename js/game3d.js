@@ -2258,37 +2258,32 @@ class SurvivalGame3D {
       this.triggerExit(reason);
     });
 
-    // Wire HUD Exit and Popup Buttons
+    // Authoritative handlers for HUD Exit, Continue, and Start New Game
     const btnExitHud = document.getElementById('btnExitGameHud');
     if (btnExitHud) {
-      btnExitHud.addEventListener('click', (e) => {
+      btnExitHud.onclick = (e) => {
         e.stopPropagation();
-        this.triggerExit('HUD Exit Button Clicked');
-      });
+        e.preventDefault();
+        this.triggerExit('Player Exited Session');
+      };
     }
 
     const btnExitCont = document.getElementById('btnExitContinue');
     if (btnExitCont) {
-      btnExitCont.addEventListener('click', (e) => {
+      btnExitCont.onclick = (e) => {
         e.stopPropagation();
+        e.preventDefault();
         this.loadMainMenu();
-      });
-    }
-
-    const btnExitNewGame = document.getElementById('btnExitStartNewGameDirect');
-    if (btnExitNewGame) {
-      btnExitNewGame.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.initGame();
-      });
+      };
     }
 
     const btnStartNew = document.getElementById('btnStartNewGame');
     if (btnStartNew) {
-      btnStartNew.addEventListener('click', (e) => {
+      btnStartNew.onclick = (e) => {
         e.stopPropagation();
+        e.preventDefault();
         this.initGame();
-      });
+      };
     }
 
     // Mouse Move (Handles both PointerLock and Drag Look!)
@@ -2813,7 +2808,10 @@ class SurvivalGame3D {
 
         // Check Death Condition: Player Hunted & Overwhelmed
         if (this.playerStats.health <= 0 || this.playerStats.infection >= 100) {
-          this.handleGameOver(false, z.type);
+          const reason = this.playerStats.infection >= 100
+            ? "Zombie infection consumed your body!"
+            : `A ${z.type || 'Mutant'} zombie attacked and infected you!`;
+          this.triggerExit(reason);
           return;
         }
       }
@@ -2832,53 +2830,10 @@ class SurvivalGame3D {
 
   handleGameOver(isVictory = false, killerType = null) {
     if (this.isGameOver) return;
-    this.isGameOver = true;
-
-    if (document.exitPointerLock) {
-      try { document.exitPointerLock(); } catch (e) {}
-    }
-    this.mouse.isLocked = false;
-
-    const modal = document.getElementById('gameOverModal');
-    const badge = document.getElementById('goBadge');
-    const title = document.getElementById('goTitle');
-    const desc = document.getElementById('goDesc');
-    const daysEl = document.getElementById('goStatDays');
-    const killsEl = document.getElementById('goStatKills');
-    const infEl = document.getElementById('goStatInfection');
-    const heatEl = document.getElementById('goStatHeat');
-
-    if (badge) {
-      badge.textContent = isVictory ? "STATUS: EXTRACTION SUCCESSFUL" : "STATUS: HUNTED & KILLED IN ACTION";
-      badge.style.color = isVictory ? "var(--accent-cyan)" : "var(--accent-crimson)";
-      badge.style.borderColor = isVictory ? "var(--accent-cyan)" : "var(--accent-crimson)";
-    }
-
-    if (title) {
-      title.textContent = isVictory ? "SURVIVAL MISSION ACCOMPLISHED" : "YOU WERE HUNTED DOWN";
-      title.style.color = isVictory ? "var(--accent-cyan)" : "#fff";
-    }
-
-    if (desc) {
-      if (isVictory) {
-        desc.textContent = "Flight Zulu-9 extracted Alexia with Dr. Evelyn's synthesis vaccine! Humanity will endure.";
-      } else {
-        const kName = killerType ? `${killerType} Zombie` : "the Mutant Horde";
-        desc.textContent = `You were detected, hunted down, and mauled by a ${kName} in District 4.`;
-      }
-    }
-
-    if (daysEl) daysEl.textContent = this.currentDay;
-    if (killsEl) killsEl.textContent = this.zombiesKilled;
-    if (infEl) infEl.textContent = this.playerStats.infection.toFixed(1) + "%";
-    if (heatEl) heatEl.textContent = this.baseHeat.radius.toFixed(0) + "m";
-
-    if (modal) modal.style.display = 'flex';
-
-    if (window.horrorAudio) {
-      window.horrorAudio.playPlayerDamage();
-      window.horrorAudio.playZombieGrowl();
-    }
+    const reason = isVictory
+      ? "Survival mission accomplished!"
+      : `Hunted down and killed by ${killerType ? killerType + ' Zombie' : 'a zombie'}!`;
+    this.triggerExit(reason);
   }
 
   togglePause() {
@@ -2890,8 +2845,6 @@ class SurvivalGame3D {
         if (document.exitPointerLock) {
           try { document.exitPointerLock(); } catch (err) {}
         }
-        const btn = document.getElementById('btnStartGamePlay');
-        if (btn) btn.innerHTML = '<span class="btn-play-icon">▶</span><span>RESUME SURVIVAL (CLICK TO LOCK)</span>';
         playOverlay.style.display = 'flex';
       } else {
         playOverlay.style.display = 'none';
@@ -2909,6 +2862,7 @@ class SurvivalGame3D {
     if (this.isExited) return;
     this.isExited = true;
     this.isPaused = true;
+    this.isGameOver = true;
 
     // Stop active audio loops & timers
     if (this._huntedBannerTimer) {
@@ -2917,6 +2871,8 @@ class SurvivalGame3D {
     }
     if (window.horrorAudio) {
       window.horrorAudio.toggleGeneratorHum(false);
+      window.horrorAudio.playPlayerDamage();
+      window.horrorAudio.playZombieGrowl();
     }
 
     // Release pointer lock so cursor is free
@@ -2928,26 +2884,20 @@ class SurvivalGame3D {
     this.keys = {};
 
     // Populate Exit Popup Statistics
+    const reasonEl = document.getElementById('exitPopupReason');
+    if (reasonEl) reasonEl.textContent = reason;
     const dayEl = document.getElementById('exitStatDay');
-    if (dayEl) dayEl.textContent = `DAY ${this.currentDay}`;
+    if (dayEl) dayEl.textContent = `${this.currentDay}`;
     const killsEl = document.getElementById('exitStatKills');
     if (killsEl) killsEl.textContent = this.zombiesKilled;
-    const infEl = document.getElementById('exitStatInfection');
-    if (infEl) infEl.textContent = this.playerStats.infection.toFixed(1) + '%';
 
     // Show Exit Popup Overlay (Freezes screen underneath)
     const exitPopup = document.getElementById('exitGamePopup');
     if (exitPopup) exitPopup.style.display = 'flex';
 
-    // Close any other open modals
-    const modal = document.getElementById('gameOverModal');
-    if (modal) modal.style.display = 'none';
+    // Hide Main Menu if open
     const playOverlay = document.getElementById('clickToPlayOverlay');
     if (playOverlay) playOverlay.style.display = 'none';
-    const banner = document.getElementById('huntedWarningBanner');
-    if (banner) banner.style.display = 'none';
-    const dModal = document.getElementById('survivorDialogueModal');
-    if (dModal) dModal.style.display = 'none';
 
     // Auto-Timer countdown to continue back to Main Menu (3 seconds)
     this._exitSecondsRemaining = 3;
@@ -3005,6 +2955,7 @@ class SurvivalGame3D {
     this.isPaused = false;
     this.isExited = false;
     this.hasStartedGame = false;
+    this.isGameOver = false;
 
     // 4. Release pointer lock
     if (document.exitPointerLock) {
@@ -3013,32 +2964,20 @@ class SurvivalGame3D {
     this.mouse.isLocked = false;
     this.mouse.isDragging = false;
 
-    // 5. Ensure Tab 1 is active view
-    const tab1Btn = document.querySelector('[data-tab="game3DTab"]');
-    if (tab1Btn && !tab1Btn.classList.contains('active')) {
-      tab1Btn.click();
-    }
-
-    // 6. Display Opening Screen (Main Menu)
+    // 5. Display Opening Screen (Main Menu)
     const playOverlay = document.getElementById('clickToPlayOverlay');
     if (playOverlay) {
       playOverlay.style.display = 'flex';
       playOverlay.classList.remove('faded-out');
 
-      // 7. Verify and unblock all main menu buttons so they are 100% clickable
-      const buttons = playOverlay.querySelectorAll('button');
-      buttons.forEach(btn => {
-        btn.disabled = false;
-        btn.style.pointerEvents = 'auto';
-        btn.style.opacity = '1';
-      });
+      // Unblock and enable Start New Game button
+      const btnStart = document.getElementById('btnStartNewGame');
+      if (btnStart) {
+        btnStart.disabled = false;
+        btnStart.style.pointerEvents = 'auto';
+        btnStart.style.opacity = '1';
+      }
     }
-
-    // 8. Close any remaining modals
-    const goModal = document.getElementById('gameOverModal');
-    if (goModal) goModal.style.display = 'none';
-    const dlgModal = document.getElementById('survivorDialogueModal');
-    if (dlgModal) dlgModal.style.display = 'none';
 
     if (window.showToast) {
       window.showToast("🏠 RETURNED TO MAIN SCREEN • READY FOR NEW SESSION", "#00f5d4");
@@ -3224,18 +3163,16 @@ class SurvivalGame3D {
     const hp = document.getElementById('hudHealthBar3D');
     const sta = document.getElementById('hudStaminaBar3D');
     const inf = document.getElementById('hudInfectionBar3D');
+    const infRow = document.getElementById('hudInfectionRow');
     const ammo = document.getElementById('hudAmmo3D');
-    const comp = document.getElementById('hudCompassBar');
 
-    if (hp) hp.style.width = this.playerStats.health + '%';
-    if (sta) sta.style.width = this.playerStats.stamina + '%';
-    if (inf) inf.style.width = this.playerStats.infection + '%';
-    if (ammo) ammo.textContent = `${this.playerStats.ammo} / ${this.playerStats.maxAmmo}`;
-
-    if (comp) {
-      let deg = Math.round(((-this.yaw * 180 / Math.PI) % 360 + 360) % 360);
-      comp.textContent = `${deg}° | ${this.getCardinal(deg)}`;
+    if (hp) hp.style.width = Math.max(0, this.playerStats.health) + '%';
+    if (sta) sta.style.width = Math.max(0, this.playerStats.stamina) + '%';
+    if (inf) inf.style.width = Math.min(100, this.playerStats.infection) + '%';
+    if (infRow) {
+      infRow.style.display = this.playerStats.infection > 0 ? 'flex' : 'none';
     }
+    if (ammo) ammo.textContent = `${this.playerStats.ammo} / ${this.playerStats.maxAmmo}`;
   }
 
   getCardinal(deg) {

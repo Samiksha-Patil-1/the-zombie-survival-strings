@@ -102,61 +102,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Hook Start New Game & Enter Survival Buttons
+  // Hook Start New Game & Exit Controls (Single Authoritative Callbacks)
   const btnStartNew = document.getElementById('btnStartNewGame');
   if (btnStartNew) {
-    btnStartNew.addEventListener('click', () => {
-      if (window.initGame) {
-        window.initGame();
-      } else if (window.game3D) {
+    btnStartNew.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (window.game3D) {
         window.game3D.initGame();
-      }
-    });
-  }
-
-  const btnStartPlay = document.getElementById('btnStartGamePlay');
-  if (btnStartPlay) {
-    btnStartPlay.addEventListener('click', () => {
-      if (window.initGame) {
+      } else if (window.initGame) {
         window.initGame();
-      } else if (window.game3D) {
-        window.game3D.initGame();
       }
-    });
+    };
   }
 
   // Hook Exit HUD and Exit Popup Buttons
   const btnExitHud = document.getElementById('btnExitGameHud');
   if (btnExitHud) {
-    btnExitHud.addEventListener('click', () => {
-      if (window.triggerExit) {
-        window.triggerExit('HUD Exit Button Clicked');
-      } else if (window.game3D) {
-        window.game3D.triggerExit('HUD Exit Button Clicked');
+    btnExitHud.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (window.game3D) {
+        window.game3D.triggerExit('Player Exited Session');
+      } else if (window.triggerExit) {
+        window.triggerExit('Player Exited Session');
       }
-    });
+    };
   }
 
   const btnExitCont = document.getElementById('btnExitContinue');
   if (btnExitCont) {
-    btnExitCont.addEventListener('click', () => {
-      if (window.loadMainMenu) {
-        window.loadMainMenu();
-      } else if (window.game3D) {
+    btnExitCont.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (window.game3D) {
         window.game3D.loadMainMenu();
+      } else if (window.loadMainMenu) {
+        window.loadMainMenu();
       }
-    });
-  }
-
-  const btnExitDirect = document.getElementById('btnExitStartNewGameDirect');
-  if (btnExitDirect) {
-    btnExitDirect.addEventListener('click', () => {
-      if (window.initGame) {
-        window.initGame();
-      } else if (window.game3D) {
-        window.game3D.initGame();
-      }
-    });
+    };
   }
 
   const btnQuickDrone = document.getElementById('btnQuickDroneStart');
